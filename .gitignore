@@ -1,0 +1,20 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+.env
+.env.local
+.env.*.local
+
+data/appointments.json
+data/outbox/
+
+.DS_Store
+Thumbs.db
+npm-debug.log*
+
+# 編輯過程留下的暫存檔
+*.bak
+*.orig
