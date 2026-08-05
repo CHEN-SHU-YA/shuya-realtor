@@ -545,8 +545,7 @@ export default function SiteHome() {
 
           <div className="footer-legal">
             <p><strong>經紀業名稱：</strong>有巢氏房屋　屏東崇大華盛加盟店</p>
-            {/* ⚠️ 營業員證號請於確認後填入，取代【證號待確認】 */}
-            <p><strong>不動產營業員：</strong>{PROFILE.name}　證號【證號待確認】</p>
+            <p><strong>不動產營業員：</strong>{PROFILE.name}　證號 {PROFILE.licenseNo}</p>
             <p><strong>服務據點：</strong>{PROFILE.address}</p>
             <p><strong>服務區域：</strong>屏東市（專營）、屏東縣、高雄</p>
             <p className="footer-disclaimer">
