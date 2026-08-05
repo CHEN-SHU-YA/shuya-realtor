@@ -13,6 +13,7 @@ import {
 } from "@/lib/appointment-store";
 import { gradeLead } from "@/lib/grading";
 import { createEmailPreview } from "@/lib/appointment-notify";
+import { PROFILE } from "@/lib/profile";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -77,6 +78,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: error.message }, { status: 409 });
     }
     console.error("[create]", error);
-    return NextResponse.json({ ok: false, error: "系統忙碌，請稍後重試。" }, { status: 500 });
+    // 儲存失敗時不要只丟「系統忙碌」讓客戶卡住，直接給可以聯絡到人的方式，
+    // 才不會白白流失一組客戶。（部署在唯讀檔案系統上時會走到這裡。）
+    return NextResponse.json(
+      {
+        ok: false,
+        error: `線上預約暫時無法送出。請直接加 LINE ${PROFILE.social.lineId}，或撥 ${PROFILE.phone}，我幫你登記時間。`
+      },
+      { status: 500 }
+    );
   }
 }
