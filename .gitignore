@@ -4,9 +4,10 @@ out/
 next-env.d.ts
 *.tsbuildinfo
 
-.env
-.env.local
-.env.*.local
+# 金鑰一律用萬用字元擋。只寫 .env.local 的話，「.env.local.txt」這種
+# 記事本存出來的檔會直接推上雲端（我們在別的專案踩過這個坑）
+.env*
+!.env.example
 
 data/appointments.json
 data/outbox/
