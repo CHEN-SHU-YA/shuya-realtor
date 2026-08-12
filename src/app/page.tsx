@@ -2,15 +2,24 @@ import type { Metadata } from "next";
 import SiteHome from "@/app/_components/SiteHome";
 import { PROFILE } from "@/lib/profile";
 import { SITE_URL } from "@/lib/site";
+import { getContent } from "@/lib/content";
+import { plain } from "@/lib/rich";
 import "./site.css";
 
-const TITLE = "屏東房仲推薦｜陳書亞 房產顧問・專營屏東市｜資產配置規劃・不動產諮詢";
-const DESCRIPTION =
-  "屏東房仲推薦－陳書亞（書亞），連續兩年百萬戰將，專營屏東市，服務屏東與高雄。提供不動產買賣仲介、資產配置規劃、節稅諮詢與售前簡易裝潢。不只幫你買賣房子，先把行情、鑑價、貸款與稅費算清楚再談成交。免費房產健檢諮詢 0925-069-812（同 LINE）。";
+/**
+ * 搜尋結果那兩行字改成從後台讀。
+ *
+ * ⚠️ 用 generateMetadata 而不是靜態的 metadata：靜態的在編譯時就定死了，
+ * 後台改完要重新部署才會生效 —— 而「改了沒反應」是最容易讓人放棄用後台的原因。
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getContent();
+  const title = plain(content.seoTitle);
+  const description = plain(content.seoDescription);
+  return { ...BASE_METADATA, title, description };
+}
 
-export const metadata: Metadata = {
-  title: TITLE,
-  description: DESCRIPTION,
+const BASE_METADATA: Metadata = {
   keywords: [
     "屏東房仲推薦", "屏東不動產諮詢", "資產配置規劃", "屏東房仲", "屏東房地產",
     "屏東市房屋買賣", "屏東買房", "屏東賣房", "陳書亞", "書亞屏東房產",
@@ -102,14 +111,24 @@ const JSON_LD = {
   ]
 };
 
-export default function Page() {
+/**
+ * 每次進頁都重讀文案，後台改完重新整理就看得到。
+ *
+ * 這頁本來是靜態產生的（編譯時就固定），改成動態之後多花的成本是
+ * 每次請求多一趟資料庫查詢（同一個機房，通常幾十毫秒）。
+ * 換到的是「改完馬上生效」—— 對一個要自己維護內容的人來說，這個交換絕對划算。
+ */
+export const dynamic = "force-dynamic";
+
+export default async function Page() {
+  const content = await getContent();
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
       />
-      <SiteHome />
+      <SiteHome content={content} />
     </>
   );
 }

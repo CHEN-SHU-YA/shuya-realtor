@@ -110,6 +110,25 @@ async function createSchema() {
     create index if not exists appointments_created_at
       on appointments (created_at desc)
   `;
+
+  /**
+   * 官網文案。整包存成一個 JSON，不是一個欄位一個 row。
+   *
+   * 為什麼：欄位是會長的（今天只開放形象區與戰績，之後會加服務項目、常見問題）。
+   * 一個欄位一個 row 的話，每加一個欄位就要多想「這筆存在不存在、預設值誰負責」；
+   * 存成一包 JSON，程式端一律「資料庫的值蓋在預設值上面」，
+   * 新欄位在資料庫裡不存在時自動吃預設值，**不用改資料庫、也不用補資料**。
+   *
+   * 🔴 更重要的是：資料庫連不上或這張表是空的時候，網站要長得跟現在一模一樣。
+   * 官網是對客戶的門面，不能因為資料庫打嗝就變成空白頁。
+   */
+  await sql`
+    create table if not exists site_content (
+      id         text        primary key,
+      data       jsonb       not null default '{}'::jsonb,
+      updated_at timestamptz not null default now()
+    )
+  `;
 }
 
 /** Postgres 的「違反唯一限制」錯誤碼。用它判斷「時段撞了」而不是解析錯誤訊息文字 */

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { PROFILE } from "@/lib/profile";
+import type { SiteContent } from "@/lib/content";
+import { rich, richHeading } from "@/lib/rich";
 
 const NAV = [
   { href: "#philosophy", label: "服務理念" },
@@ -29,11 +31,23 @@ function LineIcon({ className = "ico" }: { className?: string }) {
   );
 }
 
-export default function SiteHome() {
+/** 1~10 的中文數字。超過就直接印阿拉伯數字（「連續 11 年」讀起來也通） */
+const ZH_NUMBERS = ["", "一", "兩", "三", "四", "五", "六", "七", "八", "九", "十"];
+
+export default function SiteHome({ content }: { content: SiteContent }) {
   const [navOpen, setNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   const tel = `tel:${PROFILE.phoneRaw}`;
+
+  const awardCount = content.awards.length;
+  const awardCountZh = ZH_NUMBERS[awardCount] || String(awardCount);
+  /**
+   * 中間那格大字是獎項本身的名稱。獎名通常長這樣：「年度百萬戰將」，
+   * 但那一格上下已經寫了「年度業績肯定」「連續兩年達成」，再帶一次「年度」會很囉唆，
+   * 所以開頭的「年度」拿掉。換成別的獎項名稱也照樣運作。
+   */
+  const awardTitle = (content.awards[awardCount - 1]?.name || "百萬戰將").replace(/^年度/, "");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -122,27 +136,21 @@ export default function SiteHome() {
             <div className="hero-copy">
               <p className="eyebrow">
                 <span className="eyebrow-dot" aria-hidden="true" />
-                114・115 連續兩年百萬戰將　│　有巢氏房屋 屏東崇大華盛加盟店
+                {content.heroEyebrow}
               </p>
 
-              <h1>
-                深耕屏東，<br />
-                為你<span className="hl">精準佈局</span>每一份資產
-              </h1>
+              <h1>{richHeading(content.heroHeading)}</h1>
 
-              <p className="hero-tagline">「屏東房產大小事，書亞幫你處理」</p>
+              <p className="hero-tagline">{content.heroTagline}</p>
 
-              <p className="lead">
-                我是<strong>{PROFILE.name}</strong>，專營屏東市的房產顧問，服務範圍涵蓋屏東與高雄。
-                房子是多數人一生最大的一筆資產，決定它的價格、貸款方式與持有時間，
-                往往比「找到買方」更影響你最後真正拿到多少。
-                所以在談成交之前，我會先把數字算清楚，讓你知道自己在做什麼決定。
-              </p>
+              <p className="lead">{rich(content.heroLead)}</p>
 
               <ul className="hero-points">
-                <li><span aria-hidden="true">✓</span> <strong>連續兩年百萬戰將</strong>　業績肯定來自持續成交，不是單次好運</li>
-                <li><span aria-hidden="true">✓</span> <strong>全方位房產顧問</strong>　買賣、資產配置、節稅、售前整理一個窗口</li>
-                <li><span aria-hidden="true">✓</span> <strong>數字先講清楚</strong>　行情、鑑價、貸款、稅費攤開再談價格</li>
+                {content.heroPoints.map((point, index) => (
+                  <li key={index}>
+                    <span aria-hidden="true">✓</span> <strong>{point.title}</strong>　{point.body}
+                  </li>
+                ))}
               </ul>
 
               <div className="hero-actions">
@@ -153,7 +161,7 @@ export default function SiteHome() {
                 </a>
               </div>
 
-              <p className="hero-note">電話同 LINE，訊息我看到都會回。諮詢不收費，也不會一直打電話催你。</p>
+              <p className="hero-note">{content.heroNote}</p>
             </div>
 
             <figure className="hero-photo">
@@ -279,19 +287,24 @@ export default function SiteHome() {
             <header className="section-head section-head-light">
               <p className="section-en">TRACK RECORD</p>
               <h2>我的戰績</h2>
-              <p className="section-sub">連續兩年百萬戰將，代表的不只是業績數字。</p>
+              <p className="section-sub">{content.recordSub}</p>
             </header>
 
+            {/*
+              這三個數字方塊全部從「得獎紀錄」那份清單算出來，不另外存。
+              分開存的話，明年多一座獎，這裡會忘記改 ——
+              而且畫面上「連續兩年」跟底下列出三座獎會同時存在，看起來像在灌水。
+            */}
             <div className="s-stat-grid">
               <div className="s-stat">
-                <p className="stat-num">2<span className="stat-unit">年</span></p>
+                <p className="stat-num">{awardCount}<span className="stat-unit">年</span></p>
                 <p className="s-stat-label">連續獲獎</p>
-                <p className="stat-desc">114 年、115 年</p>
+                <p className="stat-desc">{content.awards.map((a) => `${a.year} 年`).join("、")}</p>
               </div>
               <div className="s-stat stat-hero">
-                <p className="stat-num stat-num-text">百萬戰將</p>
+                <p className="stat-num stat-num-text">{awardTitle}</p>
                 <p className="s-stat-label">年度業績肯定</p>
-                <p className="stat-desc">連續兩年達成</p>
+                <p className="stat-desc">連續{awardCountZh}年達成</p>
               </div>
               <div className="s-stat">
                 <p className="stat-num">屏東市</p>
@@ -301,22 +314,16 @@ export default function SiteHome() {
             </div>
 
             <div className="award-band">
-              <div className="award">
-                <span className="award-year">114</span>
-                <span className="award-name">年度百萬戰將</span>
-              </div>
-              <div className="award">
-                <span className="award-year">115</span>
-                <span className="award-name">年度百萬戰將</span>
-              </div>
+              {content.awards.map((award, index) => (
+                <div className="award" key={index}>
+                  <span className="award-year">{award.year}</span>
+                  <span className="award-name">{award.name}</span>
+                </div>
+              ))}
             </div>
 
             <div className="record-lead">
-              <p>
-                百萬戰將是年度業績門檻。能<strong>連續兩年</strong>達成，靠的不是某一件特別大的案子，
-                而是每一次定價前都把行情、鑑價與貸款成數重新算過一遍——
-                以及一組又一組客戶，願意把手上最大的一筆資產，交到我手上。
-              </p>
+              <p>{rich(content.recordLead)}</p>
             </div>
 
             <div className="meaning-grid">
@@ -539,7 +546,7 @@ export default function SiteHome() {
         <div className="wrap footer-grid">
           <div className="footer-brand">
             <p className="footer-name">{PROFILE.name}　<span>Shuya</span></p>
-            <p className="footer-slogan">深耕屏東，為你精準佈局每一份資產</p>
+            <p className="footer-slogan">{content.footerSlogan}</p>
             <p className="footer-tel"><a href={tel}>{PROFILE.phone}</a>（同 LINE）</p>
           </div>
 

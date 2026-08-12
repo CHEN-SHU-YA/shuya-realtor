@@ -10,7 +10,14 @@ export default function Topbar({ admin = false }: { admin?: boolean }) {
       <nav className="topnav" aria-label="主要導覽">
         <Link href="/card">名片</Link>
         <Link href="/card/booking">預約</Link>
-        <Link href="/admin/appointments">後台</Link>
+        {admin ? (
+          <>
+            <Link href="/admin/appointments">預約管理</Link>
+            <Link href="/admin/content">網站內容</Link>
+          </>
+        ) : (
+          <Link href="/admin">後台</Link>
+        )}
       </nav>
     </header>
   );

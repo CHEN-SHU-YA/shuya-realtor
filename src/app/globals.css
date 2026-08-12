@@ -915,3 +915,95 @@ a {
     gap: 4px;
   }
 }
+
+/* ── 後台：網站內容編輯 ────────────────────────────────
+   沿用預約卡片那組深色底（.appointment），只補這一頁需要的排版。
+   另外開一套配色的話，兩邊會慢慢走鐘成兩種風格。 */
+.content-block {
+  margin-bottom: 18px;
+}
+
+.content-h {
+  margin: 0 0 6px;
+  font-size: 19px;
+}
+
+.content-h3 {
+  margin: 22px 0 6px;
+  font-size: 15px;
+  color: #BFDCCB;
+}
+
+.content-desc {
+  margin: 0 0 16px;
+  color: #9DB5A8;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.content-desc code {
+  background: #04291B;
+  border: 1px solid #17573C;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 13px;
+}
+
+/* 提示文字要貼在該欄位底下，離太遠人會不知道在講哪一格 */
+.content-hint {
+  margin: 6px 0 0;
+  color: #8FAA9C;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.content-row {
+  margin-bottom: 10px;
+}
+
+.content-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.content-updated {
+  color: #8FAA9C;
+  font-size: 13px;
+}
+
+.content-reset {
+  margin-top: 34px;
+  padding-top: 18px;
+  border-top: 1px solid #124A33;
+}
+
+.admin-entries {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+.admin-entry {
+  display: block;
+  text-decoration: none;
+}
+
+.admin-entry:hover {
+  border-color: var(--gold-500);
+}
+
+.admin-entry-stat {
+  margin: 0;
+  color: var(--gold-500);
+  font-weight: 800;
+}
+
+@media (max-width: 720px) {
+  .content-row .field,
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+}
