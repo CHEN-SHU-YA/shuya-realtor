@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { PROFILE } from "@/lib/profile";
+import { AGENCY, LEGAL } from "@/lib/agency";
 import { visibleSections, type SiteContent } from "@/lib/content";
 import { rich, richHeading } from "@/lib/rich";
 
@@ -22,6 +23,15 @@ const DESKTOP_NAV_MAX = 7;
 const MAPS_URL =
   "https://www.google.com/maps/search/?api=1&query=" +
   encodeURIComponent(`有巢氏房屋 屏東崇大華盛加盟店 ${PROFILE.address}`);
+
+/**
+ * 後台填的連結是不是站內路徑。
+ *
+ * 🔴 `//example.com` 要判成**外部**：它開頭雖然是斜線，瀏覽器卻會當成外部網址連出去。
+ * 判成站內的話會丟給 <Link>，Next 會試著用路由去找一個不存在的頁面。
+ * 這條規則跟 admin/content/actions.ts 的 badUrl() 是同一套，改一邊要記得改另一邊。
+ */
+const isInternal = (url: string) => /^\/(?!\/)/.test(url);
 
 function PhoneIcon({ className = "ico" }: { className?: string }) {
   return (
@@ -99,19 +109,43 @@ export default function SiteHome({ content }: { content: SiteContent }) {
   /** 後台開關 ＋ 有沒有內容，兩個都成立才畫這一區 */
   const show = visibleSections(content);
 
+  /**
+   * 導覽。順序＝頁面由上到下的順序，`p` 是「空間不夠時誰先被砍」的優先度（大的留下）。
+   *
+   * 🔴 「房產知識」指向的是**部落格**（`/blog`）而不是首頁的 `#articles`：文章的家在部落格，
+   *    首頁那一區只是帶四張卡的入口。所以它跟 articles 開關無關，**永遠都在**——
+   *    （順帶一提：註解裡不要寫「兩個星號緊接斜線」那種字樣，那會提早關掉整段註解。）
+   *    部落格四篇是已經上線、Google 收得到的內容，首頁沒有入口等於客戶找不到。
+   * 🔴 優先度不是隨便給的：`p` 會變成 `data-p`，CSS 在窄螢幕照這個值一階一階往下砍
+   *    （見 site.css 的導覽收斂那段）。若照 DOM 順序砍，最右邊的「房產知識」會第一個消失。
+   *    「預約諮詢」給最低分是因為它旁邊就有一顆橘色 CTA 按鈕，砍掉不影響客戶預約。
+   */
   const navItems = [
-    { href: "#why", label: "為什麼找我", on: show.why },
-    { href: "#philosophy", label: "服務理念", on: true },
-    { href: "#areas", label: "服務區域", on: true },
-    { href: "#record", label: "我的戰績", on: true },
-    { href: "#reviews", label: "客戶評價", on: show.reviews },
-    { href: "#media", label: "媒體報導", on: show.media },
-    { href: "#services", label: "服務項目", on: true },
-    { href: "#articles", label: "房產知識", on: show.articles },
-    { href: "#tools", label: "免費工具", on: show.tools },
-    { href: "#booking", label: "預約諮詢", on: true }
+    { href: "#why", label: "為什麼找我", on: show.why, p: 8 },
+    { href: "#philosophy", label: "服務理念", on: true, p: 3 },
+    { href: "#areas", label: "服務區域", on: true, p: 6 },
+    { href: "#record", label: "我的戰績", on: true, p: 4 },
+    { href: "#reviews", label: "客戶評價", on: show.reviews, p: 7 },
+    { href: "#media", label: "媒體報導", on: show.media, p: 5 },
+    { href: "#services", label: "服務項目", on: true, p: 9 },
+    { href: "/blog", label: "房產知識", on: true, p: 10, route: true },
+    { href: "#tools", label: "免費工具", on: show.tools, p: 7 },
+    { href: "#booking", label: "預約諮詢", on: true, p: 2 }
   ].filter((item) => item.on);
-  const desktopNav = navItems.slice(0, DESKTOP_NAV_MAX);
+
+  /** 桌機只留優先度最高的幾項，但**照原本的頁面順序排**（不是照優先度排，那樣讀起來會跳） */
+  const keep = new Set(
+    [...navItems].sort((a, b) => b.p - a.p).slice(0, DESKTOP_NAV_MAX).map((item) => item.href)
+  );
+  const desktopNav = navItems.filter((item) => keep.has(item.href));
+
+  /** 錨點用 <a>，站內路由用 <Link>（用 <a> 會整頁重載，Next 的預先載入也失效） */
+  const navLink = (item: (typeof navItems)[number], onClick?: () => void) =>
+    item.route ? (
+      <Link key={item.href} href={item.href} data-p={item.p} onClick={onClick}>{item.label}</Link>
+    ) : (
+      <a key={item.href} href={item.href} data-p={item.p} onClick={onClick}>{item.label}</a>
+    );
 
   const whyCards = [
     {
@@ -211,7 +245,8 @@ export default function SiteHome({ content }: { content: SiteContent }) {
             >
               <MapPinIcon className="u-ico" />
             </a>
-            <Link className="u-dot" href="/card" aria-label="電子名片" title="電子名片">
+            {/* u-dot-card：最窄的手機放不下五顆，CSS 會把這一顆收起來（名片在漢堡選單裡還有） */}
+            <Link className="u-dot u-dot-card" href="/card" aria-label="電子名片" title="電子名片">
               <CardIcon className="u-ico" />
             </Link>
             <Link
@@ -240,9 +275,7 @@ export default function SiteHome({ content }: { content: SiteContent }) {
           <nav className="site-nav" aria-label="主選單">
             {/* 電子名片不放這裡：頂端資訊條已經有它的圖示了，
                 桌機導覽再塞一個，1000px 左右會跟 CTA 按鈕擠成一團 */}
-            {desktopNav.map((item) => (
-              <a key={item.href} href={item.href}>{item.label}</a>
-            ))}
+            {desktopNav.map((item) => navLink(item))}
           </nav>
 
           <Link className="btn btn-cta btn-sm header-cta" href="/card/booking">
@@ -261,9 +294,7 @@ export default function SiteHome({ content }: { content: SiteContent }) {
 
         <nav className={`mobile-nav${navOpen ? " open" : ""}`} aria-label="行動版選單">
           {/* 手機這邊放全部，桌機被 DESKTOP_NAV_MAX 砍掉的項目在這裡還找得到 */}
-          {navItems.map((item) => (
-            <a key={item.href} href={item.href} onClick={() => setNavOpen(false)}>{item.label}</a>
-          ))}
+          {navItems.map((item) => navLink(item, () => setNavOpen(false)))}
           <Link href="/card" onClick={() => setNavOpen(false)}>電子名片</Link>
           <Link className="mobile-nav-cta" href="/card/booking" onClick={() => setNavOpen(false)}>
             線上預約諮詢
@@ -762,21 +793,37 @@ export default function SiteHome({ content }: { content: SiteContent }) {
               </p>
             </header>
 
+            {/*
+              站內文章（/blog/…）走 <Link>，不開新分頁 —— 那是自己的網站，
+              把客戶丟到新分頁反而讓他更容易關掉。外部連結才 target=_blank。
+            */}
             <div className="article-grid">
-              {content.articles.map((article, index) => (
-                <a
-                  className="article-card"
-                  key={index}
-                  href={article.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {article.category && <p className="ar-cat">{article.category}</p>}
-                  <h3>{article.title}</h3>
-                  {article.excerpt && <p className="ar-excerpt">{article.excerpt}</p>}
-                  <span className="ar-more">看全文 →</span>
-                </a>
-              ))}
+              {content.articles.map((article, index) => {
+                const inner = (
+                  <>
+                    {article.category && <p className="ar-cat">{article.category}</p>}
+                    <h3>{article.title}</h3>
+                    {article.excerpt && <p className="ar-excerpt">{article.excerpt}</p>}
+                    <span className="ar-more">看全文 →</span>
+                  </>
+                );
+                return isInternal(article.url) ? (
+                  <Link className="article-card" key={index} href={article.url}>{inner}</Link>
+                ) : (
+                  <a className="article-card" key={index} href={article.url} target="_blank" rel="noreferrer">
+                    {inner}
+                  </a>
+                );
+              })}
+
+              <Link className="article-card article-more" href="/blog">
+                <span className="am-ico" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 4h10a3 3 0 0 1 3 3v13H7a3 3 0 0 0-3 3V4Zm3 3.5v1.7h7V7.5H7Zm0 3.6v1.7h7v-1.7H7Zm12-4.1h1a1 1 0 0 1 1 1V21a2 2 0 0 1-2 2H8.7a2 2 0 0 0 1.8-1.2h8.5V7Z" /></svg>
+                </span>
+                <h3>看全部文章</h3>
+                <p className="ar-excerpt">屏東房產研究室：稅、貸款、糾紛、社區實勘，持續更新。</p>
+                <span className="ar-more">前往部落格 →</span>
+              </Link>
             </div>
           </div>
         </section>
@@ -795,14 +842,23 @@ export default function SiteHome({ content }: { content: SiteContent }) {
             </header>
 
             <div className="tool-grid">
-              {content.toolItems.map((tool, index) => (
-                <a className="tool-card" key={index} href={tool.url} target="_blank" rel="noreferrer">
-                  {tool.tag && <p className="tl-tag">{tool.tag}</p>}
-                  <h3>{tool.title}</h3>
-                  {tool.desc && <p className="tl-desc">{tool.desc}</p>}
-                  <span className="tl-more">開始使用 →</span>
-                </a>
-              ))}
+              {content.toolItems.map((tool, index) => {
+                const inner = (
+                  <>
+                    {tool.tag && <p className="tl-tag">{tool.tag}</p>}
+                    <h3>{tool.title}</h3>
+                    {tool.desc && <p className="tl-desc">{tool.desc}</p>}
+                    <span className="tl-more">開始使用 →</span>
+                  </>
+                );
+                return isInternal(tool.url) ? (
+                  <Link className="tool-card" key={index} href={tool.url}>{inner}</Link>
+                ) : (
+                  <a className="tool-card" key={index} href={tool.url} target="_blank" rel="noreferrer">
+                    {inner}
+                  </a>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -913,15 +969,24 @@ export default function SiteHome({ content }: { content: SiteContent }) {
             <p className="footer-tel"><a href={tel}>{PROFILE.phone}</a>（同 LINE）</p>
           </div>
 
+          {/*
+            法遵揭露，逐字取自 @/lib/agency（與部落格頁尾同一份資料，不重打字串）。
+
+            🔴 這裡有**兩個人**，任何一項互換都是不實廣告：
+                · 陳書亞 ＝ 不動產**營業員**，證號 PROFILE.licenseNo
+                · 陳映璿 ＝ 該店專任不動產**經紀人**，證號 AGENCY.broker.licenseNo
+            🔴 2026-08-15 補上「經紀業登記名稱」「不動產經紀人」「營業時間」三行 ——
+               在此之前部落格頁尾有、首頁沒有，同一個網站兩套揭露。
+          */}
           <div className="footer-legal">
-            <p><strong>經紀業名稱：</strong>有巢氏房屋　屏東崇大華盛加盟店</p>
-            <p><strong>不動產營業員：</strong>{PROFILE.name}　證號 {PROFILE.licenseNo}</p>
+            <p><strong>經紀業名稱：</strong>{LEGAL.agencyLine}</p>
+            <p><strong>經紀業登記名稱：</strong>{LEGAL.legalNameLine}</p>
+            <p><strong>不動產經紀人：</strong>{LEGAL.brokerLine}</p>
+            <p><strong>{AGENCY.jobTitle}：</strong>{`${PROFILE.name}　證號 ${PROFILE.licenseNo}`}</p>
             <p><strong>服務據點：</strong>{PROFILE.address}</p>
-            <p><strong>服務區域：</strong>屏東市（專營）、屏東縣、高雄</p>
-            <p className="footer-disclaimer">
-              本網站為不動產經紀營業員個人服務介紹，屬仲介服務性質。所載行情、稅務與貸款說明僅供參考，
-              實際條件應以各金融機構、稅捐機關及主管機關最新規定與個案審核結果為準。
-            </p>
+            <p><strong>營業時間：</strong>{LEGAL.hoursLine}</p>
+            <p><strong>服務區域：</strong>{AGENCY.serviceArea}</p>
+            <p className="footer-disclaimer">{LEGAL.disclaimer}</p>
           </div>
         </div>
 

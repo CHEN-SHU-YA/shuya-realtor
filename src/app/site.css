@@ -87,11 +87,27 @@ html {
   overflow-x: hidden;
 }
 
-img { max-width: 100%; height: auto; display: block; }
-a { color: inherit; text-decoration: none; }
-h1, h2, h3, h4, p, ul, figure { margin: 0; }
-ul { list-style: none; padding: 0; }
-button, input, select, textarea { font: inherit; color: inherit; }
+/*
+  🔴 這幾條重置**一定要收在 .shuya-site 底下**，不可以是全域的。
+  ---------------------------------------------------------------
+  `site.css` 只在首頁（app/page.tsx）匯入，所以直覺上「全域也沒差」。
+  但 Next 做 client-side 換頁時，**上一頁的 CSS 不保證會馬上卸載** ——
+  實測（production build）從首頁點導覽的「房產知識」到 /blog，
+  site.css 還留在頁面上，於是 `p { margin: 0 }` 與 `ul { list-style: none }`
+  就套到部落格的列表頁上（段落的下邊距 16px 被歸零）。
+
+  這種 bug 最難查：**只有「從首頁點過去」的人會遇到，直接開網址的人一切正常**，
+  而且長文章頁一旦中招（段落全部黏在一起、清單沒有項目符號）就是整篇爛掉。
+  收進 .shuya-site 之後，這些規則永遠不可能碰到部落格的 DOM。
+
+  ⚠️ 首頁的所有內容（含頁首、頁尾、置底列）都包在 .shuya-site 裡，所以首頁行為完全不變。
+*/
+.shuya-site img { max-width: 100%; height: auto; display: block; }
+.shuya-site a { color: inherit; text-decoration: none; }
+.shuya-site h1, .shuya-site h2, .shuya-site h3, .shuya-site h4,
+.shuya-site p, .shuya-site ul, .shuya-site figure { margin: 0; }
+.shuya-site ul { list-style: none; padding: 0; }
+.shuya-site button, .shuya-site input, .shuya-site select, .shuya-site textarea { font: inherit; color: inherit; }
 
 .wrap {
   width: min(100% - 40px, var(--wrap));
@@ -639,6 +655,26 @@ button, input, select, textarea { font: inherit; color: inherit; }
   margin-bottom: 10px;
 }
 .ar-excerpt { font-size: .89rem; color: var(--uch-text-muted); line-height: 1.9; }
+
+/* 文章卡最後那張「看全部文章」——做成卡片而不是一顆按鈕，
+   是因為它要跟旁邊的文章卡一起把那一列填滿，不然 4 篇配 3 欄會空一格半 */
+.article-more {
+  background: linear-gradient(160deg, var(--uch-primary), var(--primary-deep));
+  border-color: var(--uch-primary);
+}
+.article-more:hover { border-color: var(--uch-secondary); }
+.article-more h3 { color: #fff; }
+.article-more .ar-excerpt { color: rgba(255,255,255,.78); }
+.article-more .ar-more { color: var(--uch-secondary); }
+.am-ico {
+  width: 46px; height: 46px;
+  display: grid; place-items: center;
+  border-radius: 14px;
+  background: rgba(255,255,255,.14);
+  color: #fff;
+  margin-bottom: 14px;
+}
+.am-ico svg { width: 24px; height: 24px; }
 .ar-more, .tl-more {
   margin-top: auto; padding-top: 16px;
   font-size: .85rem; font-weight: 700;
@@ -1386,16 +1422,21 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* ---------------- RWD ---------------- */
 /*
   導覽項目數量會隨後台開關變動（最多 7 項）。
-  空間不夠時一項一項砍掉尾巴，不要讓它換行 —— 換行會把頁首撐高，
+  空間不夠時一項一項砍掉，不要讓它換行 —— 換行會把頁首撐高，
   底下所有 scroll-padding 的錨點位置都會跟著錯。被砍掉的項目在手機選單裡還在。
+
+  🔴 **照 data-p 的優先度砍，不是照排列順序砍。**
+     用 :nth-child 砍的話砍的是「最右邊那幾個」，而最右邊剛好是
+     「房產知識」（部落格入口）跟「免費工具」—— 那是最不該消失的兩項。
+     優先度定義在 SiteHome.tsx 的 navItems，這裡只負責一階一階往下收。
 */
 @media (max-width: 1180px) {
   .site-nav { gap: 15px; }
   .site-nav a { font-size: .88rem; }
 }
-@media (max-width: 1080px) { .site-nav a:nth-child(n+7) { display: none; } }
-@media (max-width: 990px)  { .site-nav a:nth-child(n+6) { display: none; } }
-@media (max-width: 910px)  { .site-nav a:nth-child(n+5) { display: none; } }
+@media (max-width: 1080px) { .site-nav a[data-p="2"] { display: none; } }  /* 預約諮詢：旁邊就有橘色 CTA */
+@media (max-width: 990px)  { .site-nav a[data-p="3"] { display: none; } }  /* 服務理念 */
+@media (max-width: 910px)  { .site-nav a[data-p="4"] { display: none; } }  /* 我的戰績 */
 
 @media (max-width: 1024px) {
   .hero-grid { grid-template-columns: 1fr .82fr; }
@@ -1419,7 +1460,17 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .nav-toggle { display: grid; }
 
   .u-tag, .u-sep, .u-links-label { display: none; }
-  .u-links { gap: 7px; }
+
+  /*
+    手機的觸控目標。桌機 28px 的圓點用手指點會歪 ——
+    Apple 建議 44×44、Google 建議 48dp，這裡取 44。
+    資訊條本身要一起長高，不然圓點會被 40px 的高度切掉。
+  */
+  .utility-inner { min-height: 56px; }
+  .u-links { gap: 6px; }
+  .u-dot { width: 44px; height: 44px; }
+  .u-ico { width: 19px; height: 19px; }
+  .u-phone { min-height: 44px; padding-right: 4px; }
 
   .side-dock { display: none; }
 
@@ -1449,8 +1500,34 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .shuya-site { padding-bottom: 72px; }
 }
 
+/*
+  很窄的手機（360px 以下這一級）：電話號碼要留著（那是他的招牌），
+  所以改收掉「電子名片」那一顆 —— 名片在漢堡選單裡還有一條，圓點只是捷徑。
+
+  門檻 372px 是算出來的，不是隨手填：資訊條要放下
+  電話 126 ＋ 間距 10 ＋ 4 顆 44 ＋ 3 個 6 = 330px，而 .wrap 在這一級是「螢幕寬 − 32」。
+  330 + 32 = 362 → 365px 以上放得下四顆，所以 iPhone 15（393）與 SE2（375）維持四顆完整，
+  只有 360／320 這種窄機才收掉一顆。設 372 是留一點餘裕給字體渲染差異。
+*/
+@media (max-width: 372px) {
+  .u-dot-card { display: none; }
+}
+
 @media (max-width: 620px) {
   .wrap { width: min(100% - 32px, var(--wrap)); }
+
+  /*
+    🔴 窄螢幕讓按鈕文字可以換行。
+    `.btn` 預設 `white-space: nowrap`，而「加 LINE @128foprv」這顆的 min-content 是 238px；
+    它在 `.way` 裡（左右內距 44）再包一層 `.checkup`（左右內距 52），
+    整個預約區的最小寬度就被推到 **362px** —— 比 360 的 Android、320 的 SE 都寬。
+    grid 軌道會跟著撐到 362，超出的部分被 `.shuya-site` 的 overflow-x:hidden 直接裁掉，
+    客戶看到的是右邊被切掉一截的預約區（而且 document 不會出現橫向捲軸，所以很難發現）。
+    寧可按鈕變成兩行，也不要把預約區切掉。
+  */
+  .btn { white-space: normal; }
+  .booking-grid > * { min-width: 0; }
+
   .why-grid { grid-template-columns: 1fr; }
   .review-grid, .media-grid, .article-grid, .tool-grid { grid-template-columns: 1fr; }
   .trust-cell { padding: 18px 10px; }

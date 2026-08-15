@@ -132,7 +132,7 @@ export const DEFAULT_CONTENT: SiteContent = {
    * 「為什麼找我」是唯一預設開的，那一區的四張卡全部來自
    * 得獎紀錄、營業員證號、加盟店名與服務區域，資料本來就在，不用等他填。
    */
-  sections: { why: true, reviews: false, media: false, articles: false, tools: false },
+  sections: { why: true, reviews: false, media: false, articles: true, tools: false },
 
   reviewsRating: "",
   reviewsCount: "",
@@ -142,7 +142,42 @@ export const DEFAULT_CONTENT: SiteContent = {
   mediaQuote: "",
   mediaItems: [],
 
-  articles: [],
+  /**
+   * 首頁「房產知識」四張卡 → 連到 /blog 底下的實際文章。
+   *
+   * 🔴 **標題逐字取自線上文章**（2026-08-15 實抓 `<title>`，去掉「｜書亞｜屏東房產」後綴），
+   *    摘要是那四篇 meta description 的壓縮，沒有新增任何原文沒說的事。
+   *    要改標題請以文章本身為準，不要在這裡另外編一個。
+   *
+   * 這幾筆是**預設值**：他之後在後台改了，資料庫那份就會蓋掉這裡，不用回來改程式。
+   * 順序照 /blog 列表（新的在前）。
+   */
+  articles: [
+    {
+      category: "買賣實務",
+      title: "白天巷子是空的，晚上兩邊停滿——屏東巷弄透天，一定要挑晚上再去一次",
+      excerpt: "白天看屋巷子是空的，晚上回來兩邊排滿車。門口那個位子算誰的、停了會怎樣，用條文一次講清楚。",
+      url: "/blog/1004-alley-townhouse-parking"
+    },
+    {
+      category: "稅怎麼算",
+      title: "過到配偶名下就能省稅？順序搞錯，一毛都省不到——屏東屋主最常算錯這一筆",
+      excerpt: "贈與稅不計入、土增稅得不課徵，但契稅、印花稅、登記費當天照付，原地價與房地合一取得日還會回推。",
+      url: "/blog/1003-spouse-gift-pingtung"
+    },
+    {
+      category: "社區實勘",
+      title: "崇大新城常被說成國宅，其實不是——它是眷村改建的，差別寫在謄本上",
+      excerpt: "原址是大武新村與崇武新村，依眷改條例改建。五年不得出售的起算點、謄本上的限制登記與屋齡怎麼看。",
+      url: "/blog/1002-chongda-xincheng-military-village"
+    },
+    {
+      category: "買賣實務",
+      title: "買透天看了三次房，都挑白天去——真正會吵架的那幾件，連謄本都看不出來",
+      excerpt: "謄本與不動產說明書查得到的只佔一半。門口那條路是誰的、雨水往哪走、界址在不在圍牆上，得自己走一趟。",
+      url: "/blog/1001-pingtung-townhouse-site-visit"
+    }
+  ],
   toolItems: []
 };
 

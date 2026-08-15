@@ -33,14 +33,19 @@ export type ContentActionState = { ok?: boolean; error?: string };
 const str = (f: FormData, k: string) => String(f.get(k) || "").replace(/\r\n/g, "\n").trim();
 
 /**
- * 連結一律只收 http(s)。
+ * 連結只收兩種：`https://` 開頭的外部網址，或 `/` 開頭的站內路徑（例：/blog/1001-…）。
  *
  * 🔴 擋掉 `javascript:` 開頭那種東西。這些網址會原封不動變成前台的 href，
  * 後台雖然只有他自己能進，但「使用者填什麼就往頁面上放什麼」本來就不該成立。
+ *
+ * 🔴 站內路徑要**明確擋掉 `//` 開頭**。`//example.com` 看起來像站內路徑，
+ * 瀏覽器卻會當成「跟目前同協定的外部網址」照樣連出去 —— 只檢查開頭是不是 `/` 會漏掉它。
  */
 function badUrl(url: string) {
   if (!url) return false;
-  return !/^https?:\/\//i.test(url);
+  if (/^https?:\/\//i.test(url)) return false;
+  if (/^\/(?!\/)/.test(url)) return false;
+  return true;
 }
 
 /** 搜尋結果標題超過大約這個長度就會被 Google 截掉，提醒但不擋 —— 那是他的選擇 */
@@ -136,7 +141,7 @@ export async function saveSiteContent(formData: FormData): Promise<ContentAction
   if (reviewsCount && !/^\d{1,5}$/.test(reviewsCount)) {
     return { error: "評論則數只能填數字，例如 80" };
   }
-  if (badUrl(reviewsUrl)) return { error: "Google 評論連結要用 https:// 開頭的完整網址" };
+  if (badUrl(reviewsUrl)) return { error: "Google 評論連結要用 https:// 開頭的完整網址，或 / 開頭的站內路徑" };
 
   const reviews: Review[] = [];
   for (let i = 0; i < MAX_REVIEWS; i += 1) {
@@ -160,7 +165,7 @@ export async function saveSiteContent(formData: FormData): Promise<ContentAction
     if (!outlet || !title || !url) {
       return { error: `第 ${i + 1} 則報導的「媒體名稱」「標題」「連結」三格都要填` };
     }
-    if (badUrl(url)) return { error: `第 ${i + 1} 則報導的連結要用 https:// 開頭的完整網址` };
+    if (badUrl(url)) return { error: `第 ${i + 1} 則報導的連結要用 https:// 開頭的完整網址，或 / 開頭的站內路徑` };
     mediaItems.push({ outlet, title, url, date });
   }
 
@@ -173,7 +178,7 @@ export async function saveSiteContent(formData: FormData): Promise<ContentAction
     const url = str(formData, `articleUrl${i}`);
     if (!title && !url) continue;
     if (!title || !url) return { error: `第 ${i + 1} 篇文章的「標題」與「連結」要一起填，或一起留空` };
-    if (badUrl(url)) return { error: `第 ${i + 1} 篇文章的連結要用 https:// 開頭的完整網址` };
+    if (badUrl(url)) return { error: `第 ${i + 1} 篇文章的連結要用 https:// 開頭的完整網址，或 / 開頭的站內路徑` };
     articles.push({ category, title, excerpt, url });
   }
 
@@ -186,7 +191,7 @@ export async function saveSiteContent(formData: FormData): Promise<ContentAction
     const url = str(formData, `toolUrl${i}`);
     if (!title && !url) continue;
     if (!title || !url) return { error: `第 ${i + 1} 個工具的「名稱」與「連結」要一起填，或一起留空` };
-    if (badUrl(url)) return { error: `第 ${i + 1} 個工具的連結要用 https:// 開頭的完整網址` };
+    if (badUrl(url)) return { error: `第 ${i + 1} 個工具的連結要用 https:// 開頭的完整網址，或 / 開頭的站內路徑` };
     toolItems.push({ tag, title, desc, url });
   }
 

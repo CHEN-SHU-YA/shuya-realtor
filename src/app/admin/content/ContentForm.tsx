@@ -380,7 +380,7 @@ export default function ContentForm({
                   <Field label="報導標題">
                     <input name={`mediaTitle${index}`} defaultValue={content.mediaItems[index]?.title || ""} maxLength={120} />
                   </Field>
-                  <Field label="原文連結" hint="https:// 開頭的完整網址">
+                  <Field label="原文連結" hint="https:// 開頭的完整網址（站內頁面可填 /blog/…）">
                     <input name={`mediaUrl${index}`} defaultValue={content.mediaItems[index]?.url || ""} maxLength={400} />
                   </Field>
                 </div>
@@ -408,7 +408,7 @@ export default function ContentForm({
                   <Field label="分類" hint="例：房產知識／稅務／新聞時事" full={false}>
                     <input name={`articleCategory${index}`} defaultValue={content.articles[index]?.category || ""} maxLength={20} />
                   </Field>
-                  <Field label="連結" hint="https:// 開頭" full={false}>
+                  <Field label="連結" hint="https:// 開頭，站內文章可直接填 /blog/…" full={false}>
                     <input name={`articleUrl${index}`} defaultValue={content.articles[index]?.url || ""} maxLength={400} />
                   </Field>
                 </div>
@@ -444,7 +444,7 @@ export default function ContentForm({
                   <Field label="小標籤" hint="例：免費查詢／試算工具" full={false}>
                     <input name={`toolTag${index}`} defaultValue={content.toolItems[index]?.tag || ""} maxLength={20} />
                   </Field>
-                  <Field label="連結" hint="https:// 開頭" full={false}>
+                  <Field label="連結" hint="https:// 開頭，站內文章可直接填 /blog/…" full={false}>
                     <input name={`toolUrl${index}`} defaultValue={content.toolItems[index]?.url || ""} maxLength={400} />
                   </Field>
                 </div>
