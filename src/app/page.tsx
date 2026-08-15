@@ -35,12 +35,36 @@ const BASE_METADATA: Metadata = {
     title: "屏東房仲推薦｜陳書亞 房產顧問・專營屏東市",
     description: "深耕屏東，為你精準佈局每一份資產。連續兩年百萬戰將，提供不動產買賣、資產配置規劃、節稅諮詢與售前簡易裝潢。",
     url: "/",
-    images: [{ url: "/img/shuya-profile.jpg", alt: `屏東房產顧問${PROFILE.name}形象照` }]
+    /**
+     * 🔴 分享圖一定要用 **1200×630** 的 `og-home.png`，不可以指回形象照。
+     *
+     * 形象照 `shuya-profile.jpg` 是 1044×1568 的**直式**照片，而 LINE 與 Facebook
+     * 的預覽卡是 1.91:1 的橫式 —— 直式圖丟進去會被置中裁切，而那張照片的臉在
+     * 畫面上方約 40%，裁完臉會落在框外，客戶看到的只剩一塊西裝。
+     * 「把首頁網址貼進 LINE 傳給客戶」是書亞最常做的推廣動作，這張圖等於他的名片。
+     *
+     * `og-home.png` 由 `scripts/build-og-home.mjs` 產生（`npm run og`），
+     * 圖上的姓名、職稱、證號、電話、加盟店名全部從原始碼抽出來，不是手打的。
+     * 換照片或改電話之後要重跑那支腳本，不然圖上還是舊的。
+     *
+     * width / height 一定要標：平台拿它決定要不要用大卡版型，沒標的話有些
+     * 客戶端會退成小方圖縮圖。
+     */
+    images: [
+      {
+        url: "/img/og-home.png",
+        width: 1200,
+        height: 630,
+        alt: `書亞｜屏東房產－${PROFILE.name}，${PROFILE.phone}`
+      }
+    ]
   },
   twitter: {
     card: "summary_large_image",
     title: "屏東房仲推薦｜陳書亞 房產顧問・專營屏東市",
-    description: "深耕屏東，為你精準佈局每一份資產。連續兩年百萬戰將，資產配置、節稅諮詢一次到位。"
+    description: "深耕屏東，為你精準佈局每一份資產。連續兩年百萬戰將，資產配置、節稅諮詢一次到位。",
+    // 不指定的話會沿用 og:image；明寫是為了改 og 的時候不會忘了這一邊
+    images: ["/img/og-home.png"]
   }
 };
 
