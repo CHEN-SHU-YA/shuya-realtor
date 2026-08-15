@@ -30,6 +30,14 @@ import {
 const SITE_LAST_MODIFIED = new Date("2026-08-14T00:00:00+08:00");
 
 /**
+ * 學區地圖上線日。與上面同一條規則：**固定日期，不可以寫 `new Date()`。**
+ *
+ * ⚠️ 學區資料每學年度會換一次（目前是 115 學年度），
+ *    真的換資料時把這個日期往前推；只是修版面就不要動。
+ */
+const SCHOOL_MAP_LAST_MODIFIED = new Date("2026-08-15T00:00:00+08:00");
+
+/**
  * 網站地圖。
  *
  * 🔴 網址一律用 `@/lib/blog` 的 `postUrlAbs()` / `categoryUrlAbs()` / `BLOG_URL_ABS`，
@@ -43,6 +51,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: `${SITE_URL}/`, lastModified: SITE_LAST_MODIFIED, changeFrequency: "monthly", priority: 1 },
     { url: `${SITE_URL}/card`, lastModified: SITE_LAST_MODIFIED, changeFrequency: "monthly", priority: 0.8 },
+
+    /**
+     * 學區地圖。頁面本身住在另一個 Vercel 專案（`shuya-school-map`），
+     * 由 `next.config.ts` 的 rewrite 轉過來，但**對 Google 而言就是主站的一頁**，
+     * 所以要收進主站的 sitemap。
+     *
+     * 🔴 沒有這一列的話，Google 幾乎找不到它 —— 主站目前沒有任何連結指向 /tools/school-map，
+     *    而把它掛到主站底下的**唯一理由**就是 SEO 權重要留在主站。
+     *    收不到 = 這趟搬家白做。
+     */
+    {
+      url: `${SITE_URL}/tools/school-map`,
+      lastModified: SCHOOL_MAP_LAST_MODIFIED,
+      changeFrequency: "monthly",
+      priority: 0.8
+    },
 
     // 部落格列表頁：最後更新日 = 全站最新一篇的更新日
     { url: BLOG_URL_ABS, lastModified: blogLastModified(), changeFrequency: "weekly", priority: 0.9 },
