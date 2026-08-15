@@ -33,6 +33,19 @@ const MAPS_URL =
  */
 const isInternal = (url: string) => /^\/(?!\/)/.test(url);
 
+/**
+ * 這些路徑看起來是站內的，但**不是這個 Next app 的路由** ——
+ * 是 `next.config.ts` 的 rewrite 轉到另一個 Vercel 專案
+ * （目前只有學區地圖 `/tools/school-map`，那包帶著 5.5MB 村里界圖資，沒有塞進主站）。
+ *
+ * 🔴 這種路徑一定要用普通的 `<a>`，不可以用 `next/link`：
+ *    Link 會去 prefetch 這個路由的 RSC payload，可是那個網址回的是**另一個 app 的 HTML**，
+ *    輕則 console 一直噴錯，重則點下去卡住不動 —— 而且首頁其他連結都正常，很難聯想。
+ *    用 `<a>` 走一般的整頁導覽，rewrite 才會正確生效。
+ */
+const REWRITTEN_PREFIXES = ["/tools/"];
+const isRewritten = (url: string) => REWRITTEN_PREFIXES.some((prefix) => url.startsWith(prefix));
+
 function PhoneIcon({ className = "ico" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className={className}>
@@ -851,10 +864,17 @@ export default function SiteHome({ content }: { content: SiteContent }) {
                     <span className="tl-more">開始使用 →</span>
                   </>
                 );
-                return isInternal(tool.url) ? (
+                // rewrite 過去的路徑要走普通 <a>（理由見檔案上方 isRewritten 的說明），
+                // 但它仍然是站內頁面，所以不開新分頁。
+                return isInternal(tool.url) && !isRewritten(tool.url) ? (
                   <Link className="tool-card" key={index} href={tool.url}>{inner}</Link>
                 ) : (
-                  <a className="tool-card" key={index} href={tool.url} target="_blank" rel="noreferrer">
+                  <a
+                    className="tool-card"
+                    key={index}
+                    href={tool.url}
+                    {...(isInternal(tool.url) ? {} : { target: "_blank", rel: "noreferrer" })}
+                  >
                     {inner}
                   </a>
                 );

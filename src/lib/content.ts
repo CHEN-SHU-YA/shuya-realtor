@@ -132,7 +132,13 @@ export const DEFAULT_CONTENT: SiteContent = {
    * 「為什麼找我」是唯一預設開的，那一區的四張卡全部來自
    * 得獎紀錄、營業員證號、加盟店名與服務區域，資料本來就在，不用等他填。
    */
-  sections: { why: true, reviews: false, media: false, articles: true, tools: false },
+  /**
+   * ⚠️ `tools` 從 false 改成 true（2026-08-16）：學區地圖已經上線，
+   * 首頁需要一個連結指過去，Google 才找得到（只在 sitemap、站內零連結的頁面權重很低）。
+   * 這一區有內容才會畫出來（見 `visibleSections`），所以不會出現空白區塊。
+   * 要關掉的話後台「免費工具／查詢」按一下就好。
+   */
+  sections: { why: true, reviews: false, media: false, articles: true, tools: true },
 
   reviewsRating: "",
   reviewsCount: "",
@@ -178,7 +184,24 @@ export const DEFAULT_CONTENT: SiteContent = {
       url: "/blog/1001-pingtung-townhouse-site-visit"
     }
   ],
-  toolItems: []
+  /**
+   * 免費工具。
+   *
+   * 🔴 網址用相對路徑 `/tools/school-map`，**不要寫成 vercel.app 的網址**。
+   *    這一頁住在另一個 Vercel 專案，由 `next.config.ts` 的 rewrite 轉過去，
+   *    但對 Google 而言它就是主站的一頁 —— 連到 vercel.app 會把權重送給別的網域。
+   *    （`SiteHome.tsx` 的 `isRewritten` 會讓這種路徑走普通 `<a>`，不要用 next/link。）
+   *
+   * 錨點文字刻意就叫「屏東學區地圖」，那是家長真的會搜的字。
+   */
+  toolItems: [
+    {
+      tag: "學區查詢",
+      title: "屏東學區地圖",
+      desc: "輸入里名或學校名，查屏東與高雄各里對應的國小、國中學區。被切到「鄰」的里會明確標出來，不含糊帶過。",
+      url: "/tools/school-map"
+    }
+  ]
 };
 
 /**

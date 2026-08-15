@@ -132,10 +132,20 @@ export const BLOG_NAV = [
   { href: PROFILE.social.line, label: "LINE 諮詢", external: true, accent: true }
 ] as const;
 
-/** 頁尾導覽（`.bl-fnav`）。 */
+/**
+ * 頁尾導覽（`.bl-fnav`）。
+ *
+ * 🔴 這裡刻意**不放進上面的 `BLOG_NAV`**（頂部導覽）：那一排在 375px 已經很擠，
+ *    多一項會再撐高一行，而頁尾同樣每頁都有、一樣被爬蟲讀到。
+ *
+ * 學區地圖的錨點文字就叫「屏東學區地圖」——那是家長真的會搜的字，
+ * 不要為了排版好看改成「學區查詢」之類搜尋量低的詞。
+ * 網址用相對路徑，不可寫成 vercel.app（見 `content.ts` 的說明）。
+ */
 export const BLOG_FOOTER_NAV = [
   { href: "/", label: "首頁" },
   { href: "/blog", label: BLOG_META.name },
+  { href: "/tools/school-map", label: "屏東學區地圖" },
   { href: "/card", label: "電子名片" },
   { href: "/card/booking", label: "線上預約" },
   { href: PROFILE.social.line, label: "LINE", external: true }
