@@ -67,12 +67,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = categoryPageTitle(category);
   const description = categoryDescription(category);
 
+  /**
+   * 🔴 **這個分類一篇文章都沒有時，不要讓 Google 收錄。**
+   *
+   * sitemap 已經只送有文章的分類，但那**擋不住爬蟲** ——
+   * `/blog` hero 的膠囊列直接連到全部五個分類頁，Google 照樣爬得進來，
+   * 然後收錄五個「這個分類還沒有文章」的空殼頁（thin content）。
+   * 實測 2026-08-15 上線當下五頁全是空的、全都印 `index, follow`。
+   *
+   * 這裡回 noindex、但保留 `follow` —— 頁面上的連結（回 /blog、其他分類）
+   * 仍然要讓爬蟲跟著走，只是這一頁本身不進索引。
+   * 有文章之後會自動變回 index，不用記得回來改。
+   */
+  const isEmpty = getPostsByCategory(category.slug).length === 0;
+
   return {
     title: { absolute: title },
     description,
     alternates: { canonical: url },
-    // 🔴 帶 index:true——覆寫根 layout 的 noindex
-    robots: { index: true, follow: true, "max-image-preview": "large" },
+    // 🔴 帶 index:true——覆寫根 layout 的 noindex（空分類頁除外，見上面）
+    robots: { index: !isEmpty, follow: true, "max-image-preview": "large" },
     openGraph: {
       // 🔴 分類頁也是 website，不是 article
       type: "website",
