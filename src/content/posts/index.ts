@@ -23,28 +23,32 @@
 import type { Post } from "./types";
 
 import { post as post1001 } from "./1001-pingtung-townhouse-site-visit";
+import { post as post1002 } from "./1002-chongda-xincheng-military-village";
 import { post as post1003 } from "./1003-spouse-gift-pingtung";
+import { post as post1004 } from "./1004-alley-townhouse-parking";
 
 /**
- * 🔴 **1002（崇大新城眷改宅）刻意沒有註冊，而且那支檔案也刻意沒有進版控。**
+ * ✅ **1002（崇大新城眷改宅）已於 2026-08-15 收回註冊。**
  *
- * 原因跟草稿無關 —— 草稿本來就進得了版控（1001、1003 都是草稿也都在）。
- * 原因是：**這個 repo 是 PUBLIC 的**（`CHEN-SHU-YA/shuya-realtor`），
- * 而公告欄留著一條「1002 另有 4 處抄襲待修」，那篇的檔頭卻沒有提抄襲，
- * 無法確認到底修了沒。`draft: true` 只擋得住網站上的呈現，
- * **擋不住 GitHub 上任何人都讀得到原始碼，而且 git 歷史刪不掉。**
+ * 它先前刻意沒註冊、也沒進版控，原因不是草稿（1001、1003 也是草稿也都在版控裡），
+ * 而是：**這個 repo 是 PUBLIC 的**（`CHEN-SHU-YA/shuya-realtor`），
+ * 當時公告欄留著一條「1002 另有 4 處抄襲待修」，那篇檔頭卻沒提抄襲，無法確認修了沒。
+ * `draft: true` 只擋得住網站上的呈現，**擋不住 GitHub 上任何人都讀得到原始碼，
+ * 而且 git 歷史刪不掉**。
  *
- * 要收回來只要三步（2026-08-15 起）：
- *   ① 確認那 4 處抄襲修掉了
- *   ② 這裡加回 `import { post as post1002 } from "./1002-chongda-xincheng-military-village";`
- *   ③ 下面陣列加回 `post1002`，並把該 .tsx 與封面圖一起 `git add`
- * 檔案本身還在磁碟上，本機 `next dev` 看不到它（因為沒註冊），不是被刪了。
+ * 收回來的條件（註解原本列的第 ① 步）已經實跑驗過：
+ * 剝掉標籤、註解、標點、空白與英數只留漢字，連續 **8 字**比對——
+ *   · 對參考站 article.html／bloglist.html／home.html：**各 0 命中**
+ *   · 對 1001、1004：**各 0 命中**
+ *   · 對 1003：19 命中，逐一檢視後確認**全部是法條原文本身**
+ *     （1002 引《國軍老舊眷村改建條例》第 24 條、1003 引同條例第 25 條，
+ *      兩條的開頭都是「由主管機關配售之住宅」——那是法律自己的用字，逐字引用不可能不同）
  */
 /**
  * 全部文章（含草稿）。新增文章就在這裡加一筆。
  * 型別標成 `readonly Post[]`，避免有人在別處 push 或排序這一份原始資料。
  */
-export const POSTS: readonly Post[] = [post1001, post1003];
+export const POSTS: readonly Post[] = [post1001, post1002, post1003, post1004];
 
 /**
  * `@/lib/blog` 讀的是這個名字（`import { posts as REGISTRY } from "@/content/posts"`）。

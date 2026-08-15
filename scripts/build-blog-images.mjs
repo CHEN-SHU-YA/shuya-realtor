@@ -805,15 +805,19 @@ function cover1002() {
  * 這三格就是全篇的骨架，也是標題「省下的稅沒你想的多」的具體內容。
  *
  * 🔴 主標第一行**刻意不照抄文章 h1 的「屏東的房子過戶給另一半」**，改用導言那句
- *    「過到另一半名下」。原因：高雄同業 2026-08-14 那篇同題文章的 h1 就叫
+ *    「過到配偶名下」。原因：高雄同業 2026-08-14 那篇同題文章的 h1 就叫
  *    「房子過戶給另一半，貸款還是你在背……」，照抄會在封面上撞出連續 8 個字的雷同。
  *    封面是 og:image，撞名比內文更顯眼。改字前請先確認那邊的標題換了沒有。
+ *
+ * ✅ 2026-08-15 更新：書亞從三個選項挑定新標題（選 C），文章 h1 已改成
+ *    「過到配偶名下就能省稅？順序搞錯，一毛都省不到——屏東屋主最常算錯這一筆」，
+ *    封面主標同步改成前兩句，與 h1 一致。
  */
 function cover1003() {
   const W = 1200;
   const H = 630;
-  fit("1003 封面主標 1", "屏東的房子過到另一半名下", 72, 1056);
-  fit("1003 封面主標 2", "省下的稅沒你想的多", 72, 1056);
+  fit("1003 封面主標 1", "過到配偶名下就能省稅？", 72, 1056);
+  fit("1003 封面主標 2", "順序搞錯，一毛都省不到", 72, 1056);
 
   const box = (x, opts) => {
     const w = 336;
@@ -840,8 +844,8 @@ function cover1003() {
       R(0, 0, W, H, { fill: P.paper }),
       R(0, 0, W, 10, { fill: P.accent }),
       T("稅怎麼算　條號與原文都附上", { x: 72, y: 92, size: 26, weight: 700, fill: P.accent2, ls: 1 }),
-      T("屏東的房子過到另一半名下", { x: 72, y: 196, size: 72, weight: 900, fill: P.ink }),
-      T("省下的稅沒你想的多", { x: 72, y: 286, size: 72, weight: 900, fill: P.ink }),
+      T("過到配偶名下就能省稅？", { x: 72, y: 196, size: 72, weight: 900, fill: P.ink }),
+      T("順序搞錯，一毛都省不到", { x: 72, y: 286, size: 72, weight: 900, fill: P.ink }),
       R(72, 314, 96, 8, { fill: P.accent }),
       box(72, {
         tone: "solid",
@@ -1177,6 +1181,543 @@ function fig1003_05() {
   );
 }
 
+/* ───────────────────────────────────────────────────────────────
+   1004｜白天巷子是空的，晚上兩邊停滿（分類：買賣實務）
+
+   🔴 這一組圖上的每一個數字與條號，都取自
+      `docs/部落格/事實庫/00-巷弄停車素材表.md` 標【已查證】的條文原文，
+      而且與文章 `src/content/posts/1004-alley-townhouse-parking.tsx` 寫的一致。
+      對照表（改字前請逐項核對）：
+        · 「道路」四套定義　　建築技術規則設計施工編 §1（A-8）／屏東縣道路管理自治條例 §2（A-22）
+        　　　　　　　　　　　／道交條例 §3 第 1 款（A-16）／屏東縣建築管理自治條例 §4（A-4）
+        · 釋字第 400 號用語　「年代久遠而未曾中斷」「一般人無復記憶其確實之起始」（A-2）
+        · 二十年的兩個出處　 屏東縣政府既成道路認定標準作業程序（A-23）／自治條例 §4 第 4 款（A-4）
+        · 民法 §787～§789　　條文給的動作只有「通行」與「開設道路」（A-11～A-13）
+        · 五百／一百五十／三百平方公尺　建築技術規則設計施工編 §59 表第二類（C 組）
+        · 151.25 坪　　　　　單位換算，圖上已標明「單位換算」四個字
+        · 上午七時至晚間八時　標線設置規則 §168（B-9）；全日廿四小時＝同規則 §169（B-10）
+        · 第 56 條第 1 項第 5 款、屏東縣處理妨害交通車輛自治條例 §3 第 2 款（B-3、D-1）
+
+   🔴 圖上**刻意不寫**這幾件事（素材表列為查無或待查，寫上去就是把推論當定論）：
+      · 不寫「法院判過通行權不含停車」——查不到可引用的判決，只能寫條文裡沒有這兩個字。
+      · 不寫任何巷寬或消防車救災空間的公尺數——屏東老巷弄無官方圖資，指導原則未逐字核對。
+      · 不寫「移置五小時內領車不計收保管費、最高四十五日」——兩份來源不一致，屬待查。
+      · 不寫罰單金額——條文給的是罰鍰區間，統一裁罰基準表本次未取得。
+   🔴 fig-05 的色塊代表的是**禁止的時段**，不是線本身的顏色（`PALETTE` 沒有黃、紅代幣），
+      圖上已用一行小字講明。不要為了「畫得像」去加不在 `PALETTE` 裡的顏色。
+   ─────────────────────────────────────────────────────────────── */
+
+/**
+ * 1004 封面：同一條巷子，白天與晚上兩個時段。
+ * 主標逐字取自文章 h1 的前半段（書亞 2026-08-15 挑定的標題，不可改字），
+ * 右側那一行是 h1 的後半段。
+ */
+function cover1004() {
+  const W = 1200;
+  const H = 630;
+  fit("1004 封面主標 1", "白天巷子是空的", 76, 1056);
+  fit("1004 封面主標 2", "晚上兩邊停滿", 76, 1056);
+  fit("1004 封面副標", "屏東巷弄透天，一定要挑晚上再去一次", 30, 510);
+
+  /**
+   * 巷子俯視示意：一條路，上下各一排停車格。
+   * 兩個面板的幾何**完全一樣**，只有格子裡有沒有東西不同——這張圖的全部訊息就是那個差別。
+   * 🔴 圖上不標任何公尺數：屏東市老巷弄的實際寬度沒有可查的官方數據，
+   *    標了就等於自己編一個「巷子有多寬」出來。
+   */
+  const panel = (x, night) => {
+    const y = 344;
+    const w = 496;
+    const h = 196;
+    const bx = x + 24;
+    const bw = 448;
+
+    // 6 格 × 兩排。格寬 68、間距 8（節距 76），6 × 76 − 8 ＝ 448 ＝ 路面寬度。
+    const slots = [];
+    for (let i = 0; i < 6; i += 1) {
+      const sx = bx + i * 76;
+      const cell = (sy) =>
+        night
+          ? R(sx, sy, 68, 24, { fill: P.band, rx: 4 })
+          : R(sx, sy, 68, 24, { fill: "none", stroke: P.deep2, sw: 2, dash: "7 6" });
+      slots.push(cell(y + 76) + cell(y + 130));
+    }
+
+    const caption = night ? "兩側停滿，中間剩下的才是實況" : "兩側都空著，整條都過得去";
+    fit(`1004 封面面板說明「${caption}」`, caption, 22, bw);
+
+    return [
+      night
+        ? R(x, y, w, h, { fill: P.deep, rx: 16 })
+        : R(x, y, w, h, { fill: P.white, stroke: P.line, sw: 2, rx: 16 }),
+      R(bx, y + 18, 88, 38, { fill: night ? P.accent : P.deep, rx: 19 }),
+      T(night ? "晚上" : "白天", { x: bx + 44, y: y + 44, size: 24, weight: 700, fill: P.white, anchor: "middle" }),
+      // 白天那格的路面是淺色的，跟白底幾乎同色，所以一定要有邊框，不然讀不出「這是一條路」。
+      night
+        ? R(bx, y + 74, bw, 80, { fill: P.deep2, rx: 6 })
+        : R(bx, y + 74, bw, 80, { fill: P.paper, stroke: P.line, sw: 2, rx: 6 }),
+      slots.join(""),
+      // 箭頭走在兩排格子中間那一條帶（y+100～y+130）的中線上，不會壓到格子。
+      arrowRight(bx + 36, y + 116, bx + 412, { color: night ? P.accent : P.deep, sw: 5, head: 14 }),
+      T(caption, { x: bx, y: y + 184, size: 22, weight: 500, fill: night ? P.band : P.ink })
+    ].join("");
+  };
+
+  return svgDoc(
+    W,
+    H,
+    [
+      R(0, 0, W, H, { fill: P.paper }),
+      R(0, 0, W, 10, { fill: P.deep }),
+      T("買賣實務　同一條巷子，兩個時段", { x: 72, y: 92, size: 26, weight: 700, fill: P.accent2, ls: 1 }),
+      T("白天巷子是空的", { x: 72, y: 196, size: 76, weight: 900, fill: P.ink }),
+      T("晚上兩邊停滿", { x: 72, y: 286, size: 76, weight: 900, fill: P.ink }),
+      T("屏東巷弄透天，一定要挑晚上再去一次", { x: 1128, y: 286, size: 30, weight: 500, fill: P.deep2, anchor: "end" }),
+      R(72, 314, 96, 8, { fill: P.accent }),
+      panel(72, false),
+      panel(632, true),
+      R(72, 562, 1056, 1, { fill: P.line }),
+      T(AGENCY_NAME, { x: 72, y: 600, size: 22, weight: 500, fill: P.deep }),
+      T(BRAND, { x: 1128, y: 600, size: 22, weight: 700, fill: P.deep, anchor: "end" })
+    ].join("")
+  );
+}
+
+/**
+ * 1004 fig-01（第三節）：「道路」四套定義並排。
+ * 顏色帶有意義：深綠＝中央法規、橘＝屏東縣自治法規，右上角的標籤寫的是同一件事。
+ * 引號裡是條文節錄，不是白話翻譯——改字前請回素材表 A-8／A-22／A-16／A-4 逐字對。
+ */
+function fig1004_01() {
+  const W = 1200;
+  const H = 675;
+
+  const card = (x, y, { n, tone, tag, name, law, quote, kind }) => {
+    const w = 530;
+    const h = 210;
+    fit(`fig-01 法規名「${name}」`, name, 25, 280);
+    fit(`fig-01 標籤「${tag}」`, tag, 18, 150);
+    fit(`fig-01 條號「${law}」`, law, 19, w - 104);
+    quote.forEach((line) => fit(`fig-01 條文「${line}」`, line, 20, w - 88));
+    fit(`fig-01 判準「${kind}」`, kind, 21, w - 48);
+    return [
+      R(x, y, w, h, { fill: P.white, stroke: P.line, sw: 2, rx: 16 }),
+      badge(x + 42, y + 44, 24, { fill: tone, label: n, size: 24 }),
+      T(name, { x: x + 80, y: y + 38, size: 25, weight: 700, fill: P.ink }),
+      T(tag, { x: x + w - 24, y: y + 36, size: 18, weight: 700, fill: tone, anchor: "end" }),
+      T(law, { x: x + 80, y: y + 68, size: 19, weight: 500, fill: P.deep2 }),
+      R(x + 24, y + 88, w - 48, 66, { fill: P.paper, rx: 10 }),
+      quote.map((line, i) => T(line, { x: x + 44, y: y + 116 + i * 26, size: 20, weight: 500, fill: P.ink })).join(""),
+      T(kind, { x: x + 24, y: y + 186, size: 21, weight: 700, fill: tone })
+    ].join("");
+  };
+
+  return svgDoc(
+    W,
+    H,
+    [
+      R(0, 0, W, H, { fill: P.white }),
+      figHeading("「道路」不是一個定義，是四套並存", "建築管理與交通取締各有一套，屏東縣自己還有兩套"),
+
+      card(60, 166, {
+        n: "1",
+        tone: P.deep,
+        tag: "中央法規",
+        name: "建築技術規則",
+        law: "建築設計施工編第 1 條　道路",
+        quote: ["「道路：除另有規定外，", "不包括私設通路及類似通路」"],
+        kind: "這一套裡，私設通路不算道路"
+      }),
+      card(610, 166, {
+        n: "2",
+        tone: P.accent,
+        tag: "屏東縣自治法規",
+        name: "屏東縣道路管理自治條例",
+        law: "第 2 條　道路",
+        quote: ["「指縣轄內之縣道、鄉道、市區道路、", "農路、重劃區道路、廣場及村里聯絡道路」"],
+        kind: "列舉式，沒有概括的那一句"
+      }),
+      card(60, 396, {
+        n: "3",
+        tone: P.deep,
+        tag: "中央法規",
+        name: "道路交通管理處罰條例",
+        law: "第 3 條第 1 款　道路",
+        quote: ["「指公路、街道、巷衖、廣場、騎樓、", "走廊或其他供公眾通行之地方」"],
+        kind: "功能標準，看實際供不供公眾通行"
+      }),
+      card(610, 396, {
+        n: "4",
+        tone: P.accent,
+        tag: "屏東縣自治法規",
+        name: "屏東縣建築管理自治條例",
+        law: "第 4 條第 4 款　現有巷道",
+        quote: ["「現有通路旁已有編釘門牌房屋二戶以上，", "且其門牌編釘或戶籍登記已逾二十年」"],
+        kind: "地方自訂，屏東的案子用屏東的"
+      }),
+
+      R(60, 626, 8, 26, { fill: P.accent }),
+      T("四套並存：同一條巷子在不同法規下可能得到不同答案，對應的主管機關也不一樣", {
+        x: 84,
+        y: 647,
+        size: 22,
+        weight: 500,
+        fill: P.deep2
+      })
+    ].join("")
+  );
+}
+
+/**
+ * 1004 fig-02（第四節）：二十年這個數字的三個出處。
+ * ⚠️ 上半部那句話**是被否定的講法**，一定要同時有「常見的講法」標籤與打叉記號，
+ *    只留文字會被當成本站的主張。
+ * 🔴 左邊那張（釋字第 400 號）的重點是「沒有寫二十年」，
+ *    所以引文只能放它真正寫了什麼，不可以在那張圖上出現二十年當成要件。
+ */
+function fig1004_02() {
+  const W = 1200;
+  const H = 675;
+
+  const source = (x, { tone, head, meta, quote, verdict, solidVerdict }) => {
+    const y = 318;
+    const w = 340;
+    const h = 250;
+    fit(`fig-02 出處標題「${head}」`, head, 22, w - 40);
+    fit(`fig-02 出處日期「${meta}」`, meta, 19, w - 40);
+    quote.forEach((line) => fit(`fig-02 出處引文「${line}」`, line, 18, w - 64));
+    fit(`fig-02 出處結論「${verdict}」`, verdict, 20, w - 60);
+    return [
+      R(x, y, w, h, { fill: P.white, stroke: P.line, sw: 2, rx: 16 }),
+      topRoundRect(x + 1, y + 1, w - 2, 48, 15, tone),
+      T(head, { x: x + w / 2, y: y + 33, size: 22, weight: 700, fill: P.white, anchor: "middle" }),
+      T(meta, { x: x + w / 2, y: y + 80, size: 19, weight: 500, fill: P.deep2, anchor: "middle" }),
+      R(x + 20, y + 96, w - 40, 88, { fill: P.paper, rx: 10 }),
+      // 左內距 12（不是 18）：釋字那兩句剛好 15 個全形字，18 的內距會擠出淺色底之外。
+      quote.map((line, i) => T(line, { x: x + 32, y: y + 124 + i * 26, size: 18, weight: 500, fill: P.ink })).join(""),
+      R(x + 20, y + 196, w - 40, 40, solidVerdict ? { fill: P.accent2, rx: 10 } : { fill: P.paper, rx: 10 }),
+      T(verdict, {
+        x: x + w / 2,
+        y: y + 222,
+        size: 20,
+        weight: 700,
+        fill: solidVerdict ? P.white : P.deep,
+        anchor: "middle"
+      })
+    ].join("");
+  };
+
+  return svgDoc(
+    W,
+    H,
+    [
+      R(0, 0, W, H, { fill: P.white }),
+      figHeading("二十年這個數字，不在釋字第 400 號裡", "同樣是二十年，一個是應檢附的文件，一個是另一種身分的款次"),
+
+      R(60, 168, 1080, 96, { fill: P.white, stroke: P.line, sw: 2, rx: 14 }),
+      R(88, 196, 150, 40, { fill: P.accent, rx: 20 }),
+      T("常見的講法", { x: 163, y: 224, size: 21, weight: 700, fill: P.white, anchor: "middle" }),
+      T(fit("fig-02 被否定的講法", "通行滿二十年，就算既成道路", 25, 730), {
+        x: 264,
+        y: 225,
+        size: 25,
+        weight: 500,
+        fill: P.ink
+      }),
+      crossMark(1062, 216, 38),
+
+      arrowDown(600, 274, 310, { color: P.deep2, sw: 5 }),
+
+      source(60, {
+        tone: P.deep,
+        head: "司法院釋字第 400 號",
+        meta: "民國 85 年 4 月 12 日公布",
+        quote: ["「須經歷之年代久遠而未曾中斷」", "「一般人無復記憶其確實之起始」"],
+        verdict: "條文沒有寫二十年",
+        solidVerdict: true
+      }),
+      source(430, {
+        tone: P.accent,
+        head: "屏東縣政府作業程序",
+        meta: "既成道路認定標準　106 年函頒",
+        quote: ["「通行二十年以上相關證明", "（如航空測量圖等）」", "列為應檢附文件之一"],
+        verdict: "二十年＝檢附文件"
+      }),
+      source(800, {
+        tone: P.accent,
+        head: "屏東縣建築管理自治條例",
+        meta: "第 4 條第 4 款　現有巷道",
+        quote: ["「現有通路旁已有編釘門牌", "房屋二戶以上，且其門牌編", "釘或戶籍登記已逾二十年」"],
+        verdict: "二十年＝另一種身分"
+      }),
+
+      R(60, 596, 8, 26, { fill: P.accent }),
+      T("位階與性質都不同：一個是司法院解釋的成立要件，兩個是地方政府的文件要求與認定款次", {
+        x: 84,
+        y: 617,
+        size: 22,
+        weight: 500,
+        fill: P.deep2
+      })
+    ].join("")
+  );
+}
+
+/**
+ * 1004 fig-03（第六節）：袋地通行權三條條文給的動作。
+ * 🔴 右邊那一塊只能寫「條文裡找不到這兩個詞」，**不可以**寫成「法院判過通行權不含停車」——
+ *    公開資料查不到可引用的判決（素材表第三節第 1 項）。底部第二行就是這句自我節制，
+ *    不要因為版面擠就把它拿掉，那一行是這張圖能不能出街的前提。
+ */
+function fig1004_03() {
+  const W = 1200;
+  const H = 675;
+
+  const lawCard = (y, { law, desc, verb }) => {
+    const x = 60;
+    const w = 640;
+    const h = 110;
+    fit(`fig-03 條號「${law}」`, law, 26, 420);
+    fit(`fig-03 條文摘要「${desc}」`, desc, 20, w - 56);
+    fit(`fig-03 動作「${verb}」`, verb, 22, 118);
+    return [
+      R(x, y, w, h, { fill: P.white, stroke: P.line, sw: 2, rx: 14 }),
+      T(law, { x: x + 28, y: y + 44, size: 26, weight: 700, fill: P.deep }),
+      R(x + w - 170, y + 24, 142, 42, { fill: P.deep, rx: 21 }),
+      T(verb, { x: x + w - 99, y: y + 52, size: 22, weight: 700, fill: P.white, anchor: "middle" }),
+      T(desc, { x: x + 28, y: y + 84, size: 20, weight: 400, fill: P.ink })
+    ].join("");
+  };
+
+  return svgDoc(
+    W,
+    H,
+    [
+      R(0, 0, W, H, { fill: P.white }),
+      figHeading("袋地通行權三條，法律給的動作只有兩個", "民法第 787 條至第 789 條，全文沒有出現「停車」或「停放」"),
+
+      lawCard(210, {
+        law: "民法第 787 條",
+        desc: "與公路無適宜之聯絡、不能為通常使用時，得通行周圍地",
+        verb: "通行"
+      }),
+      lawCard(336, {
+        law: "民法第 788 條",
+        desc: "有通行權人於必要時得開設道路，但應支付償金",
+        verb: "開設道路"
+      }),
+      lawCard(462, {
+        law: "民法第 789 條",
+        desc: "一部讓與或分割造成的袋地，只能通行當事人的地，無須償金",
+        verb: "通行"
+      }),
+
+      // 右邊這一塊講的是「缺席」。
+      // ⚠️ 叉一定要畫在字**之前**（也就是壓在字底下）：先字後叉那一版實測過，
+      //    兩道 8px 的線把「停車」「停放」切成碎塊，讀者看到的是壞掉的圖，不是「找不到」。
+      R(740, 210, 400, 362, { fill: P.paper, stroke: P.line, sw: 2, rx: 16 }),
+      T("條文裡找不到的字", { x: 940, y: 254, size: 24, weight: 700, fill: P.accent2, anchor: "middle" }),
+      crossMark(940, 386, 180, { color: P.accent2, sw: 7 }),
+      T("停車", { x: 940, y: 352, size: 56, weight: 900, fill: P.ink, anchor: "middle" }),
+      T("停放", { x: 940, y: 442, size: 56, weight: 900, fill: P.ink, anchor: "middle" }),
+      T("三條從頭到尾都沒有這兩個詞", { x: 940, y: 512, size: 21, weight: 500, fill: P.ink, anchor: "middle" }),
+
+      R(60, 584, 1080, 74, { fill: P.white, stroke: P.line, sw: 2, rx: 14 }),
+      T("第 787 條第 2 項：應於通行必要之範圍內，擇其周圍地損害最少之處所及方法為之", {
+        x: 88,
+        y: 616,
+        size: 21,
+        weight: 500,
+        fill: P.ink
+      }),
+      T("公開資料查不到判決明文表示通行權不包含停車，這張圖只呈現條文寫了什麼、沒寫什麼", {
+        x: 88,
+        y: 646,
+        size: 19,
+        weight: 500,
+        fill: P.deep2
+      })
+    ].join("")
+  );
+}
+
+/**
+ * 1004 fig-04（第八節）：住宅類的停車空間門檻。
+ * 「五百平方公尺以下部分：免設」是條文原文；151.25 坪是單位換算，
+ * 圖上與文章都標明「單位換算」四個字，不可以寫成條文文字。
+ */
+function fig1004_04() {
+  const W = 1200;
+  const H = 675;
+
+  return svgDoc(
+    W,
+    H,
+    [
+      R(0, 0, W, H, { fill: P.white }),
+      figHeading("多數透天沒有車位，不是當年沒規定", "住宅類：五百平方公尺以下部分免設，都市計畫內外都一樣"),
+
+      // 「門檻」壓在虛線正上方，不要放到左邊界——放左邊會被讀成整塊深色區的標題。
+      T("門檻", { x: 530, y: 232, size: 22, weight: 700, fill: P.accent2, anchor: "middle" }),
+
+      // 左：門檻以下（免設）。右：超過門檻之後，都市計畫內外各一列。
+      R(60, 250, 460, 150, { fill: P.deep, rx: 14 }),
+      T(fit("fig-04 門檻說明", "五百平方公尺以下部分", 25, 412), {
+        x: 84,
+        y: 292,
+        size: 25,
+        weight: 500,
+        fill: P.band
+      }),
+      T("免設", { x: 84, y: 356, size: 46, weight: 900, fill: P.white }),
+      T(fit("fig-04 單位換算", "約 151.25 坪（單位換算）", 19, 280), {
+        x: 200,
+        y: 356,
+        size: 19,
+        weight: 500,
+        fill: P.band
+      }),
+
+      PATH("M530 244 L530 406", { stroke: P.accent, sw: 3, dash: "10 8" }),
+
+      feeRow(540, 250, 600, "都市計畫內區域", "超過部分每一百五十平方公尺設置一輛", { h: 71 }),
+      feeRow(540, 329, 600, "都市計畫外區域", "超過部分每三百平方公尺設置一輛", { h: 71 }),
+
+      R(60, 420, 1080, 116, { fill: P.white, stroke: P.line, sw: 2, rx: 14 }),
+      T("表列總樓地板面積的計算，不包括這些（同條說明一）", { x: 88, y: 456, size: 23, weight: 700, fill: P.deep }),
+      T(fit("fig-04 不計入 1", "室內停車空間面積、法定防空避難設備面積", 21, 1024), {
+        x: 88,
+        y: 492,
+        size: 21,
+        weight: 400,
+        fill: P.ink
+      }),
+      T(fit("fig-04 不計入 2", "騎樓或門廊、外廊等無牆壁之面積，及機械房、變電室、蓄水池、屋頂突出物等類似用途部分", 21, 1024), {
+        x: 88,
+        y: 522,
+        size: 21,
+        weight: 400,
+        fill: P.ink
+      }),
+
+      R(60, 552, 1080, 100, { fill: P.paper, rx: 14 }),
+      T("條文開頭是「依都市計畫法令或都市計畫書之規定」，其未規定者才依表——都市計畫優先", {
+        x: 88,
+        y: 592,
+        size: 21,
+        weight: 500,
+        fill: P.ink
+      }),
+      T("建築技術規則建築設計施工編第 59 條表第二類與說明一；法定停車空間應設置在同一基地內（第 59 條之 1 第 1 款）", {
+        x: 88,
+        y: 626,
+        size: 19,
+        weight: 400,
+        fill: P.deep2
+      })
+    ].join("")
+  );
+}
+
+/**
+ * 1004 fig-05（第十節）：黃線與紅線的禁止時段。
+ * 🔴 色塊代表的是**禁止的時段**，不是線的顏色——`PALETTE` 沒有黃色與紅色代幣，
+ *    所以圖上留了一行小字講明這件事。不要為了畫得像去加代幣以外的顏色，
+ *    也不要把橘色塊誤當成「黃線就是橘的」。
+ * 軸的比例：x 從 60 到 1140（1080px）＝ 0 時到 24 時，每小時 45px。
+ */
+function fig1004_05() {
+  const W = 1200;
+  const H = 675;
+  const AX = 60;
+  const AW = 1080;
+  const hourX = (hour) => AX + (AW * hour) / 24;
+
+  const row = (y, { name, law, fill, segX, segW, segText }) => {
+    fit(`fig-05 標線名「${name}」`, name, 26, 560);
+    fit(`fig-05 條號「${law}」`, law, 19, 480);
+    fit(`fig-05 時段「${segText}」`, segText, 22, segW - 24);
+    return [
+      T(name, { x: AX, y, size: 26, weight: 700, fill: P.deep }),
+      T(law, { x: AX + AW, y, size: 19, weight: 500, fill: P.deep2, anchor: "end" }),
+      R(AX, y + 18, AW, 56, { fill: P.paper, rx: 8 }),
+      R(segX, y + 18, segW, 56, { fill, rx: 6 }),
+      T(segText, { x: segX + segW / 2, y: y + 54, size: 22, weight: 700, fill: P.white, anchor: "middle" })
+    ].join("");
+  };
+
+  const tick = (hour, label, anchor) =>
+    PATH(`M${hourX(hour)} 446 L${hourX(hour)} 460`, { stroke: P.line, sw: 3 }) +
+    T(label, { x: hourX(hour), y: 484, size: 20, weight: 500, fill: P.deep2, anchor });
+
+  return svgDoc(
+    W,
+    H,
+    [
+      R(0, 0, W, H, { fill: P.white }),
+      figHeading("黃線只禁到晚間八時，紅線是全日廿四小時", "要延長或縮短，得用標字或標誌及其附牌標示；現場沒有，就是預設時段", {
+        size: 44
+      }),
+
+      row(210, {
+        name: "黃實線　禁止停車線",
+        law: "道路交通標誌標線號誌設置規則第 168 條",
+        fill: P.accent,
+        segX: hourX(7),
+        segW: hourX(20) - hourX(7),
+        segText: "禁止停車　上午七時至晚間八時"
+      }),
+      // 起訖時刻的引線畫在兩排之間，兩排共用同一支時間軸。
+      PATH(`M${hourX(7)} 284 L${hourX(7)} 446`, { stroke: P.accent2, sw: 2, dash: "6 6" }),
+      PATH(`M${hourX(20)} 284 L${hourX(20)} 446`, { stroke: P.accent2, sw: 2, dash: "6 6" }),
+
+      row(372, {
+        name: "紅實線　禁止臨時停車線",
+        law: "同規則第 169 條",
+        fill: P.deep,
+        segX: AX,
+        segW: AW,
+        segText: "禁止臨時停車　全日廿四小時"
+      }),
+
+      PATH("M60 446 L1140 446", { stroke: P.line, sw: 3 }),
+      tick(0, "0 時", "start"),
+      tick(7, "上午七時", "middle"),
+      tick(20, "晚間八時", "middle"),
+      tick(24, "24 時", "end"),
+
+      // ⚠️ 這一行要自己佔一列。放在刻度那一列的右端會直接壓到「晚間八時」與「24 時」——
+      //    實測過，兩組字疊在一起。
+      T("圖上的色塊代表「禁止的時段」，不是線本身的顏色", {
+        x: AX,
+        y: 514,
+        size: 19,
+        weight: 500,
+        fill: P.deep2
+      }),
+
+      R(60, 534, 1080, 124, { fill: P.white, stroke: P.line, sw: 2, rx: 14 }),
+      T("沒有畫線的地方，也不是可以停", { x: 88, y: 572, size: 24, weight: 700, fill: P.ink }),
+      R(88, 596, 10, 10, { fill: P.accent, rx: 2 }),
+      T(fit("fig-05 條列 1", "在顯有妨礙其他人、車通行處所停車　道路交通管理處罰條例第 56 條第 1 項第 5 款", 20, 1000), {
+        x: 110,
+        y: 606,
+        size: 20,
+        weight: 400,
+        fill: P.ink
+      }),
+      R(88, 630, 10, 10, { fill: P.accent, rx: 2 }),
+      T(fit("fig-05 條列 2", "無標線處所違規停放致妨害交通，駕駛人不在車內　屏東縣處理妨害交通車輛自治條例第 3 條第 2 款", 20, 1000), {
+        x: 110,
+        y: 640,
+        size: 20,
+        weight: 400,
+        fill: P.ink
+      })
+    ].join("")
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════
    4. 清單與產出
    要加新圖：在這個陣列加一列，跑一次 `node scripts/build-blog-images.mjs`。
@@ -1196,7 +1737,13 @@ const IMAGES = [
   { file: "1003-spouse-gift-pingtung/fig-02.png", w: 1200, h: 675, svg: fig1003_02 },
   { file: "1003-spouse-gift-pingtung/fig-03.png", w: 1200, h: 675, svg: fig1003_03 },
   { file: "1003-spouse-gift-pingtung/fig-04.png", w: 1200, h: 675, svg: fig1003_04 },
-  { file: "1003-spouse-gift-pingtung/fig-05.png", w: 1200, h: 675, svg: fig1003_05 }
+  { file: "1003-spouse-gift-pingtung/fig-05.png", w: 1200, h: 675, svg: fig1003_05 },
+  { file: "1004-alley-townhouse-parking/cover.png", w: 1200, h: 630, svg: cover1004 },
+  { file: "1004-alley-townhouse-parking/fig-01.png", w: 1200, h: 675, svg: fig1004_01 },
+  { file: "1004-alley-townhouse-parking/fig-02.png", w: 1200, h: 675, svg: fig1004_02 },
+  { file: "1004-alley-townhouse-parking/fig-03.png", w: 1200, h: 675, svg: fig1004_03 },
+  { file: "1004-alley-townhouse-parking/fig-04.png", w: 1200, h: 675, svg: fig1004_04 },
+  { file: "1004-alley-townhouse-parking/fig-05.png", w: 1200, h: 675, svg: fig1004_05 }
 ];
 
 /** 單檔大小上限（見 docs/blog-images.md：封面是 eager 載入，太大直接拖慢手機第一屏）。 */
