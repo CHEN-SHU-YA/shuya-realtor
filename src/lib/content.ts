@@ -22,6 +22,45 @@ import { ensureSchema, getSql, hasDatabase } from "@/lib/db";
 export type HeroPoint = { title: string; body: string };
 export type Award = { year: string; name: string };
 
+/**
+ * ── 可開關的區塊 ──
+ *
+ * 這幾區是「先把版位做好、內容之後慢慢補」的東西。
+ * 沒做完就關著，前台完全不出現；填完打開，網站才長出那一塊。
+ *
+ * 🔴 開關為真**還不夠**，還要真的有內容才會顯示（見下面的 visibleSections）。
+ * 不然打開一個空的區塊，客戶看到的是一片空白加一個孤零零的標題 ——
+ * 那比沒有這一區更糟。
+ */
+export type SectionKey = "why" | "reviews" | "media" | "articles" | "tools";
+
+export const SECTION_KEYS: SectionKey[] = ["why", "reviews", "media", "articles", "tools"];
+
+/** 後台那排開關的中文名稱，前後台共用同一份，不要各寫各的 */
+export const SECTION_LABELS: Record<SectionKey, string> = {
+  why: "為什麼找我",
+  reviews: "客戶評價",
+  media: "媒體報導",
+  articles: "房產知識",
+  tools: "免費工具／查詢"
+};
+
+/**
+ * 每一區最多幾筆。
+ *
+ * 放在這裡而不是放在 actions.ts —— `"use server"` 的檔案**只能匯出 async function**，
+ * 匯出一個常數會讓整個模組編譯失敗（而且 tsc 檢查不出來，只有跑起來才會炸）。
+ */
+export const MAX_REVIEWS = 6;
+export const MAX_MEDIA = 6;
+export const MAX_ARTICLES = 6;
+export const MAX_TOOLS = 6;
+
+export type Review = { name: string; source: string; text: string };
+export type MediaItem = { outlet: string; title: string; url: string; date: string };
+export type Article = { category: string; title: string; excerpt: string; url: string };
+export type ToolItem = { tag: string; title: string; desc: string; url: string };
+
 export type SiteContent = {
   /** 搜尋結果上那一行藍色標題 */
   seoTitle: string;
@@ -42,6 +81,22 @@ export type SiteContent = {
   recordLead: string;
 
   footerSlogan: string;
+
+  /** 每一區要不要出現在前台。少掉的 key 一律當成「關」 */
+  sections: Record<SectionKey, boolean>;
+
+  /** 客戶評價。星等與則數請照 Google 商家後台的實際數字填，不要自己估 */
+  reviewsRating: string;
+  reviewsCount: string;
+  reviewsUrl: string;
+  reviews: Review[];
+
+  /** 媒體報導。每一則都要有可以點開驗證的原文連結 */
+  mediaQuote: string;
+  mediaItems: MediaItem[];
+
+  articles: Article[];
+  toolItems: ToolItem[];
 };
 
 /** 目前線上那份文案，逐字搬過來 */
@@ -70,8 +125,42 @@ export const DEFAULT_CONTENT: SiteContent = {
   recordLead:
     "百萬戰將是年度業績門檻。能**連續兩年**達成，靠的不是某一件特別大的案子，而是每一次定價前都把行情、鑑價與貸款成數重新算過一遍——以及一組又一組客戶，願意把手上最大的一筆資產，交到我手上。",
 
-  footerSlogan: "深耕屏東，為你精準佈局每一份資產"
+  footerSlogan: "深耕屏東，為你精準佈局每一份資產",
+
+  /**
+   * 🔴 新的四區預設全關 —— 因為它們現在沒有內容。
+   * 「為什麼找我」是唯一預設開的，那一區的四張卡全部來自
+   * 得獎紀錄、營業員證號、加盟店名與服務區域，資料本來就在，不用等他填。
+   */
+  sections: { why: true, reviews: false, media: false, articles: false, tools: false },
+
+  reviewsRating: "",
+  reviewsCount: "",
+  reviewsUrl: "",
+  reviews: [],
+
+  mediaQuote: "",
+  mediaItems: [],
+
+  articles: [],
+  toolItems: []
 };
+
+/**
+ * 哪幾區真的要畫出來：**開關打開 ＋ 真的有內容**，兩個條件都要成立。
+ * 只看開關的話，他在後台勾了「顯示」卻還沒填東西，前台就會多一塊空白。
+ */
+export function visibleSections(content: SiteContent): Record<SectionKey, boolean> {
+  const on = (key: SectionKey) => content.sections?.[key] === true;
+  return {
+    why: on("why"),
+    // 評價區只要有星等或有評價其中一樣就成立 —— 只放分數不放評論也是合理的做法
+    reviews: on("reviews") && Boolean(content.reviewsRating || content.reviews.length),
+    media: on("media") && content.mediaItems.length > 0,
+    articles: on("articles") && content.articles.length > 0,
+    tools: on("tools") && content.toolItems.length > 0
+  };
+}
 
 const ROW_ID = "home";
 
@@ -84,6 +173,20 @@ function isAward(value: unknown): value is Award {
   const v = value as Award;
   return Boolean(v) && typeof v.year === "string" && typeof v.name === "string";
 }
+
+/** 每一個欄位都要是字串才算數。少一格就整筆丟掉，不要讓 undefined 印到畫面上 */
+function hasStringKeys<T>(keys: readonly string[]) {
+  return (value: unknown): value is T => {
+    if (!value || typeof value !== "object") return false;
+    const v = value as Record<string, unknown>;
+    return keys.every((k) => typeof v[k] === "string");
+  };
+}
+
+const isReview = hasStringKeys<Review>(["name", "source", "text"]);
+const isMediaItem = hasStringKeys<MediaItem>(["outlet", "title", "url", "date"]);
+const isArticle = hasStringKeys<Article>(["category", "title", "excerpt", "url"]);
+const isToolItem = hasStringKeys<ToolItem>(["tag", "title", "desc", "url"]);
 
 /**
  * 把資料庫撈到的東西疊到預設值上面。
@@ -108,7 +211,8 @@ function merge(data: unknown): SiteContent {
   (
     [
       "seoTitle", "seoDescription", "heroEyebrow", "heroHeading", "heroTagline",
-      "heroLead", "heroNote", "recordSub", "recordLead", "footerSlogan"
+      "heroLead", "heroNote", "recordSub", "recordLead", "footerSlogan",
+      "reviewsRating", "reviewsCount", "reviewsUrl", "mediaQuote"
     ] as const
   ).forEach(text);
 
@@ -118,6 +222,25 @@ function merge(data: unknown): SiteContent {
   if (Array.isArray(raw.awards) && raw.awards.every(isAward)) {
     out.awards = raw.awards;
   }
+
+  /**
+   * 開關一個一個看，不是整包蓋掉。
+   * 之後再多開一區的時候，資料庫裡那筆舊資料不會有新 key ——
+   * 整包蓋掉的話那一區會變成 undefined，這裡則是安全地退回「關」。
+   */
+  if (raw.sections && typeof raw.sections === "object") {
+    const stored = raw.sections as Record<string, unknown>;
+    const merged = { ...DEFAULT_CONTENT.sections };
+    SECTION_KEYS.forEach((key) => {
+      if (typeof stored[key] === "boolean") merged[key] = stored[key] as boolean;
+    });
+    out.sections = merged;
+  }
+
+  if (Array.isArray(raw.reviews) && raw.reviews.every(isReview)) out.reviews = raw.reviews;
+  if (Array.isArray(raw.mediaItems) && raw.mediaItems.every(isMediaItem)) out.mediaItems = raw.mediaItems;
+  if (Array.isArray(raw.articles) && raw.articles.every(isArticle)) out.articles = raw.articles;
+  if (Array.isArray(raw.toolItems) && raw.toolItems.every(isToolItem)) out.toolItems = raw.toolItems;
 
   return out;
 }

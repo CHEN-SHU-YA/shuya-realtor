@@ -8,12 +8,40 @@
  * 使用者看不到自己哪一格填錯 —— 擋下來卻不告訴人原因，等於沒擋。
  */
 import { revalidatePath } from "next/cache";
-import { DEFAULT_CONTENT, saveContent, type Award, type HeroPoint, type SiteContent } from "@/lib/content";
+import {
+  DEFAULT_CONTENT,
+  MAX_ARTICLES,
+  MAX_MEDIA,
+  MAX_REVIEWS,
+  MAX_TOOLS,
+  SECTION_KEYS,
+  SECTION_LABELS,
+  saveContent,
+  type Article,
+  type Award,
+  type HeroPoint,
+  type MediaItem,
+  type Review,
+  type SectionKey,
+  type SiteContent,
+  type ToolItem
+} from "@/lib/content";
 import { hasDatabase } from "@/lib/db";
 
 export type ContentActionState = { ok?: boolean; error?: string };
 
 const str = (f: FormData, k: string) => String(f.get(k) || "").replace(/\r\n/g, "\n").trim();
+
+/**
+ * 連結一律只收 http(s)。
+ *
+ * 🔴 擋掉 `javascript:` 開頭那種東西。這些網址會原封不動變成前台的 href，
+ * 後台雖然只有他自己能進，但「使用者填什麼就往頁面上放什麼」本來就不該成立。
+ */
+function badUrl(url: string) {
+  if (!url) return false;
+  return !/^https?:\/\//i.test(url);
+}
 
 /** 搜尋結果標題超過大約這個長度就會被 Google 截掉，提醒但不擋 —— 那是他的選擇 */
 const SEO_TITLE_SOFT_MAX = 60;
@@ -92,8 +120,87 @@ export async function saveSiteContent(formData: FormData): Promise<ContentAction
    * 這裡不擋，因為總有一天可能要拿掉；但要講清楚後果，不能讓他改完才發現首頁空一塊。
    */
 
+  // ── 區塊開關 ──
+  const sections = { ...DEFAULT_CONTENT.sections };
+  SECTION_KEYS.forEach((key) => {
+    sections[key] = formData.get(`section_${key}`) === "on";
+  });
+
+  // ── 客戶評價 ──
+  const reviewsRating = str(formData, "reviewsRating");
+  const reviewsCount = str(formData, "reviewsCount");
+  const reviewsUrl = str(formData, "reviewsUrl");
+  if (reviewsRating && !/^[0-5](\.\d)?$/.test(reviewsRating)) {
+    return { error: "Google 評分只能填 0～5 之間的數字，例如 5.0 或 4.8" };
+  }
+  if (reviewsCount && !/^\d{1,5}$/.test(reviewsCount)) {
+    return { error: "評論則數只能填數字，例如 80" };
+  }
+  if (badUrl(reviewsUrl)) return { error: "Google 評論連結要用 https:// 開頭的完整網址" };
+
+  const reviews: Review[] = [];
+  for (let i = 0; i < MAX_REVIEWS; i += 1) {
+    const name = str(formData, `reviewName${i}`);
+    const source = str(formData, `reviewSource${i}`);
+    const text = str(formData, `reviewText${i}`);
+    if (!name && !text) continue;
+    if (!name || !text) return { error: `第 ${i + 1} 則評價的「客戶稱呼」與「評價內容」要一起填，或一起留空` };
+    reviews.push({ name, source, text });
+  }
+
+  // ── 媒體報導 ──
+  const mediaQuote = str(formData, "mediaQuote");
+  const mediaItems: MediaItem[] = [];
+  for (let i = 0; i < MAX_MEDIA; i += 1) {
+    const outlet = str(formData, `mediaOutlet${i}`);
+    const title = str(formData, `mediaTitle${i}`);
+    const url = str(formData, `mediaUrl${i}`);
+    const date = str(formData, `mediaDate${i}`);
+    if (!outlet && !title && !url) continue;
+    if (!outlet || !title || !url) {
+      return { error: `第 ${i + 1} 則報導的「媒體名稱」「標題」「連結」三格都要填` };
+    }
+    if (badUrl(url)) return { error: `第 ${i + 1} 則報導的連結要用 https:// 開頭的完整網址` };
+    mediaItems.push({ outlet, title, url, date });
+  }
+
+  // ── 房產知識 ──
+  const articles: Article[] = [];
+  for (let i = 0; i < MAX_ARTICLES; i += 1) {
+    const category = str(formData, `articleCategory${i}`);
+    const title = str(formData, `articleTitle${i}`);
+    const excerpt = str(formData, `articleExcerpt${i}`);
+    const url = str(formData, `articleUrl${i}`);
+    if (!title && !url) continue;
+    if (!title || !url) return { error: `第 ${i + 1} 篇文章的「標題」與「連結」要一起填，或一起留空` };
+    if (badUrl(url)) return { error: `第 ${i + 1} 篇文章的連結要用 https:// 開頭的完整網址` };
+    articles.push({ category, title, excerpt, url });
+  }
+
+  // ── 免費工具 ──
+  const toolItems: ToolItem[] = [];
+  for (let i = 0; i < MAX_TOOLS; i += 1) {
+    const tag = str(formData, `toolTag${i}`);
+    const title = str(formData, `toolTitle${i}`);
+    const desc = str(formData, `toolDesc${i}`);
+    const url = str(formData, `toolUrl${i}`);
+    if (!title && !url) continue;
+    if (!title || !url) return { error: `第 ${i + 1} 個工具的「名稱」與「連結」要一起填，或一起留空` };
+    if (badUrl(url)) return { error: `第 ${i + 1} 個工具的連結要用 https:// 開頭的完整網址` };
+    toolItems.push({ tag, title, desc, url });
+  }
+
   const content: SiteContent = {
     ...DEFAULT_CONTENT,
+    sections,
+    reviewsRating,
+    reviewsCount,
+    reviewsUrl,
+    reviews,
+    mediaQuote,
+    mediaItems,
+    articles,
+    toolItems,
     seoTitle,
     seoDescription,
     heroEyebrow,
@@ -128,6 +235,22 @@ export async function saveSiteContent(formData: FormData): Promise<ContentAction
   }
   if (!awards.length) {
     warnings.push("得獎紀錄是空的，首頁「我的戰績」那一區的獎項會不見");
+  }
+
+  /**
+   * 勾了顯示卻還沒填內容 —— 前台會自己擋著不畫（不會出現空區塊），
+   * 但一定要講，不然他會以為存壞了，跑去前台找半天找不到那一區。
+   */
+  const emptyWhenOn: [SectionKey, boolean][] = [
+    ["reviews", Boolean(reviewsRating || reviews.length)],
+    ["media", mediaItems.length > 0],
+    ["articles", articles.length > 0],
+    ["tools", toolItems.length > 0]
+  ];
+  for (const [key, hasContent] of emptyWhenOn) {
+    if (sections[key] && !hasContent) {
+      warnings.push(`「${SECTION_LABELS[key]}」勾了顯示但還沒有內容，前台先不會出現，等你填完就會自己長出來`);
+    }
   }
   return { ok: true, error: warnings.length ? `已存檔，但提醒你：${warnings.join("；")}` : undefined };
 }

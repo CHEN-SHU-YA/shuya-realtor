@@ -4,16 +4,24 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { PROFILE } from "@/lib/profile";
-import type { SiteContent } from "@/lib/content";
+import { visibleSections, type SiteContent } from "@/lib/content";
 import { rich, richHeading } from "@/lib/rich";
 
-const NAV = [
-  { href: "#philosophy", label: "服務理念" },
-  { href: "#areas", label: "服務區域" },
-  { href: "#record", label: "我的戰績" },
-  { href: "#services", label: "服務項目" },
-  { href: "#booking", label: "預約諮詢" }
-];
+/**
+ * 桌機導覽最多放這麼多項。
+ * 可開關的區塊全部打開會變成 10 項，塞不下 —— 硬塞會擠掉 CTA 按鈕或換行讓頁首跳高。
+ * 超過的部分只出現在手機選單裡（手機是直的，放幾項都沒差）。
+ */
+const DESKTOP_NAV_MAX = 7;
+
+/**
+ * 門市在 Google 地圖上的位置。
+ * 用 search 語法帶店名＋地址，不寫死 place_id ——
+ * 商家資料被 Google 換過 id 的話，寫死的連結會變成一片空白，search 至少還找得到。
+ */
+const MAPS_URL =
+  "https://www.google.com/maps/search/?api=1&query=" +
+  encodeURIComponent(`有巢氏房屋 屏東崇大華盛加盟店 ${PROFILE.address}`);
 
 function PhoneIcon({ className = "ico" }: { className?: string }) {
   return (
@@ -31,8 +39,46 @@ function LineIcon({ className = "ico" }: { className?: string }) {
   );
 }
 
+function MapPinIcon({ className = "ico" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className}>
+      <path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" />
+    </svg>
+  );
+}
+
+function CardIcon({ className = "ico" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className}>
+      <path fill="currentColor" d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm2 3v2h5V8H6Zm0 4v2h8v-2H6Z" />
+    </svg>
+  );
+}
+
+function CalendarIcon({ className = "ico" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className}>
+      <path fill="currentColor" d="M7 2v2h10V2h2v2h2a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h2V2h2ZM4 9v10h16V9H4Zm3 2h4v4H7v-4Z" />
+    </svg>
+  );
+}
+
 /** 1~10 的中文數字。超過就直接印阿拉伯數字（「連續 11 年」讀起來也通） */
 const ZH_NUMBERS = ["", "一", "兩", "三", "四", "五", "六", "七", "八", "九", "十"];
+
+/**
+ * 「先確認這四件事」四張卡。
+ *
+ * 🔴 這四張**只放查得到、可驗證的事實**：得獎紀錄、營業員證號、加盟店名與門市地址、服務區域。
+ * 不放成交件數、滿意度、客戶數 —— 那些沒有來源，寫上去就是不實廣告。
+ * 證號與店名一律讀 PROFILE，不在這裡重打一次（打錯了畫面上看起來完全正常）。
+ */
+const WHY_ICONS = {
+  award: "M7 4h10v2h3v3a4 4 0 0 1-4 4h-.6A5 5 0 0 1 13 15.9V18h3.5v2h-9v-2H11v-2.1A5 5 0 0 1 7.6 13H7a4 4 0 0 1-4-4V6h4V4Zm0 4H5v1a2 2 0 0 0 2 2V8Zm10 0v3a2 2 0 0 0 2-2V8h-2Z",
+  id: "M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm5 3.5A2.25 2.25 0 1 0 8 13a2.25 2.25 0 0 0 0-4.5ZM4.5 17h7c0-1.9-1.6-3-3.5-3s-3.5 1.1-3.5 3Zm9.5-7.5h5.5v1.6H14V9.5Zm0 3.4h5.5v1.6H14v-1.6Z",
+  store: "M4 3h16l1.6 5.2A3.1 3.1 0 0 1 18.6 12a3.1 3.1 0 0 1-2.4-1.1A3.1 3.1 0 0 1 13.8 12a3.1 3.1 0 0 1-2.4-1.1A3.1 3.1 0 0 1 9 12a3.1 3.1 0 0 1-2.4-1.1A3.1 3.1 0 0 1 4.2 12a3.1 3.1 0 0 1-1.8-3.8L4 3Zm0 10.7c.9 0 1.7-.3 2.4-.8V21h11.2v-8.1c.7.5 1.5.8 2.4.8V22a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8.3ZM9 15h4v4H9v-4Z",
+  pin: "M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"
+} as const;
 
 export default function SiteHome({ content }: { content: SiteContent }) {
   const [navOpen, setNavOpen] = useState(false);
@@ -48,6 +94,51 @@ export default function SiteHome({ content }: { content: SiteContent }) {
    * 所以開頭的「年度」拿掉。換成別的獎項名稱也照樣運作。
    */
   const awardTitle = (content.awards[awardCount - 1]?.name || "百萬戰將").replace(/^年度/, "");
+  const awardYears = content.awards.map((a) => a.year).join("、");
+
+  /** 後台開關 ＋ 有沒有內容，兩個都成立才畫這一區 */
+  const show = visibleSections(content);
+
+  const navItems = [
+    { href: "#why", label: "為什麼找我", on: show.why },
+    { href: "#philosophy", label: "服務理念", on: true },
+    { href: "#areas", label: "服務區域", on: true },
+    { href: "#record", label: "我的戰績", on: true },
+    { href: "#reviews", label: "客戶評價", on: show.reviews },
+    { href: "#media", label: "媒體報導", on: show.media },
+    { href: "#services", label: "服務項目", on: true },
+    { href: "#articles", label: "房產知識", on: show.articles },
+    { href: "#tools", label: "免費工具", on: show.tools },
+    { href: "#booking", label: "預約諮詢", on: true }
+  ].filter((item) => item.on);
+  const desktopNav = navItems.slice(0, DESKTOP_NAV_MAX);
+
+  const whyCards = [
+    {
+      icon: WHY_ICONS.award,
+      tag: "業績肯定",
+      title: `連續${awardCountZh}年${awardTitle}`,
+      body: `${awardYears} 年度都達標。定價與議價靠的是每次重新算過一遍的方法，不是某一件特別大的案子。`
+    },
+    {
+      icon: WHY_ICONS.id,
+      tag: "合法身分",
+      title: "營業員證號公開揭露",
+      body: `不動產營業員證號 ${PROFILE.licenseNo}。委託、廣告與簽約全部走正式程序，我是仲介這件事，一開始就會講清楚。`
+    },
+    {
+      icon: WHY_ICONS.store,
+      tag: "有實體店頭",
+      title: "有巢氏房屋 屏東崇大華盛加盟店",
+      body: `門市就在${PROFILE.address}。人找得到、事有人扛，不是一支手機跑全場。`
+    },
+    {
+      icon: WHY_ICONS.pin,
+      tag: "在地深耕",
+      title: "專營屏東市，服務屏東縣與高雄",
+      body: "同一條路的兩側、同一個社區的不同棟，成交價可能差一段。這種價差的原因，實價登錄查不到。"
+    }
+  ];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -60,7 +151,9 @@ export default function SiteHome({ content }: { content: SiteContent }) {
     if (!("IntersectionObserver" in window)) return;
     const targets = Array.from(
       document.querySelectorAll<HTMLElement>(
-        ".phil-card, .phil-quote, .area-card, .s-stat, .award, .record-lead, .meaning, .service-card, .checkup, .way, .contact-card"
+        ".why-card, .phil-card, .phil-quote, .area-card, .s-stat, .award, .record-lead, .meaning, " +
+          ".review-card, .media-card, .article-card, .tool-card, " +
+          ".service-card, .checkup, .way, .contact-card"
       )
     );
     targets.forEach((el, i) => {
@@ -85,6 +178,54 @@ export default function SiteHome({ content }: { content: SiteContent }) {
     <div className="shuya-site">
       <a className="skip-link" href="#main">跳至主要內容</a>
 
+      {/* ========== 頂端資訊條 ========== */}
+      {/* 不做 sticky：捲下去就讓它走，黏著的只留頁首那一條，手機才不會被兩層擠掉半個畫面 */}
+      <div className="utility-bar">
+        <div className="wrap utility-inner">
+          <a className="u-phone" href={tel}>
+            <PhoneIcon className="u-ico" />
+            {PROFILE.phone}
+          </a>
+          <span className="u-sep" aria-hidden="true">｜</span>
+          <span className="u-tag">屏東房產大小事，書亞幫你處理</span>
+
+          <div className="u-links">
+            <span className="u-links-label">聯絡 · 預約書亞</span>
+            <a
+              className="u-dot u-dot-line"
+              href={PROFILE.social.line}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`加 LINE ${PROFILE.social.lineId}`}
+              title={`加 LINE ${PROFILE.social.lineId}`}
+            >
+              <LineIcon className="u-ico" />
+            </a>
+            <a
+              className="u-dot"
+              href={MAPS_URL}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="在 Google 地圖上看門市位置"
+              title="門市位置"
+            >
+              <MapPinIcon className="u-ico" />
+            </a>
+            <Link className="u-dot" href="/card" aria-label="電子名片" title="電子名片">
+              <CardIcon className="u-ico" />
+            </Link>
+            <Link
+              className="u-dot u-dot-cta"
+              href="/card/booking"
+              aria-label="線上預約"
+              title="線上預約"
+            >
+              <CalendarIcon className="u-ico" />
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* ========== 頁首 ========== */}
       <header className={`site-header${scrolled ? " scrolled" : ""}`}>
         <div className="wrap header-inner">
@@ -97,14 +238,15 @@ export default function SiteHome({ content }: { content: SiteContent }) {
           </a>
 
           <nav className="site-nav" aria-label="主選單">
-            {NAV.map((item) => (
+            {/* 電子名片不放這裡：頂端資訊條已經有它的圖示了，
+                桌機導覽再塞一個，1000px 左右會跟 CTA 按鈕擠成一團 */}
+            {desktopNav.map((item) => (
               <a key={item.href} href={item.href}>{item.label}</a>
             ))}
-            <Link href="/card">電子名片</Link>
           </nav>
 
-          <Link className="btn btn-primary btn-sm header-cta" href="/card/booking">
-            線上預約
+          <Link className="btn btn-cta btn-sm header-cta" href="/card/booking">
+            免費房產健檢
           </Link>
 
           <button
@@ -118,7 +260,8 @@ export default function SiteHome({ content }: { content: SiteContent }) {
         </div>
 
         <nav className={`mobile-nav${navOpen ? " open" : ""}`} aria-label="行動版選單">
-          {NAV.map((item) => (
+          {/* 手機這邊放全部，桌機被 DESKTOP_NAV_MAX 砍掉的項目在這裡還找得到 */}
+          {navItems.map((item) => (
             <a key={item.href} href={item.href} onClick={() => setNavOpen(false)}>{item.label}</a>
           ))}
           <Link href="/card" onClick={() => setNavOpen(false)}>電子名片</Link>
@@ -174,15 +317,87 @@ export default function SiteHome({ content }: { content: SiteContent }) {
                   priority
                 />
               </div>
+              {/*
+                浮在照片左下角那張卡：得獎年數 ＋ 姓名職稱。
+                年數與年度全部從 content.awards 算，明年多一座獎這裡自己會變 ——
+                寫死的話，畫面會出現「連續兩年」配三座獎，看起來像在灌水。
+              */}
               <figcaption className="photo-badge">
-                <strong>{PROFILE.name}</strong>
-                <span>不動產營業員・房產顧問</span>
+                <span className="pb-num">
+                  {awardCount}
+                  <span className="pb-unit">年</span>
+                </span>
+                <span className="pb-body">
+                  <strong>連續{awardCountZh}年{awardTitle}</strong>
+                  <span className="pb-years">{content.awards.map((a) => a.year).join("・")} 年度</span>
+                  <span className="pb-who">{PROFILE.name}・不動產營業員</span>
+                </span>
               </figcaption>
             </figure>
           </div>
         </section>
 
-        {/* ========== 2. 服務理念 ========== */}
+        {/* ========== 2. 信任數字帶 ========== */}
+        {/* 每一格都是頁面下方某個區塊的入口，不是純裝飾的數字牆 */}
+        <section className="trust-band" aria-label="重點資訊">
+          <div className="wrap trust-grid">
+            <a className="trust-cell" href="#record">
+              <span className="trust-num">{awardCount}<span className="trust-unit">年</span></span>
+              <span className="trust-label">連續{awardTitle}</span>
+              <span className="trust-desc">{content.awards.map((a) => a.year).join("・")} 年度</span>
+            </a>
+            <a className="trust-cell" href="#areas">
+              <span className="trust-num">3<span className="trust-unit">區</span></span>
+              <span className="trust-label">服務範圍</span>
+              <span className="trust-desc">屏東市・屏東縣・高雄</span>
+            </a>
+            <a className="trust-cell" href="#services">
+              <span className="trust-num">4<span className="trust-unit">項</span></span>
+              <span className="trust-label">全方位服務</span>
+              <span className="trust-desc">買賣・配置・稅務・裝潢</span>
+            </a>
+            <a className="trust-cell trust-cell-cta" href="#booking">
+              <span className="trust-num">0<span className="trust-unit">元</span></span>
+              <span className="trust-label">免費房產健檢</span>
+              <span className="trust-desc">行情・鑑價・貸款・稅費</span>
+            </a>
+          </div>
+        </section>
+
+        {/* ========== 3. 為什麼找我（可在後台關掉） ========== */}
+        {show.why && (
+        <section className="section why-section" id="why">
+          <div className="wrap">
+            <header className="section-head">
+              <p className="section-en">WHY SHUYA</p>
+              <h2>把房子交給我之前，先確認這四件事</h2>
+              <p className="section-sub">
+                房仲入行門檻低，同一個社區可能有二十個人打電話給你。
+                要不要往下談，看這四項就夠 —— 全部<strong>查得到、可以驗證</strong>。
+              </p>
+            </header>
+
+            <div className="why-grid">
+              {whyCards.map((card) => (
+                <article className="why-card" key={card.title}>
+                  <span className="why-ico" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d={card.icon} /></svg>
+                  </span>
+                  <p className="why-tag">{card.tag}</p>
+                  <h3>{card.title}</h3>
+                  <p className="why-body">{card.body}</p>
+                </article>
+              ))}
+            </div>
+
+            <p className="why-note">
+              以上為實際取得的獎項、證號與登記資訊，可自行查證。
+            </p>
+          </div>
+        </section>
+        )}
+
+        {/* ========== 4. 服務理念 ========== */}
         <section className="section" id="philosophy">
           <div className="wrap">
             <header className="section-head">
@@ -234,7 +449,7 @@ export default function SiteHome({ content }: { content: SiteContent }) {
           </div>
         </section>
 
-        {/* ========== 3. 服務區域 ========== */}
+        {/* ========== 5. 服務區域 ========== */}
         <section className="section section-soft" id="areas">
           <div className="wrap">
             <header className="section-head">
@@ -281,7 +496,7 @@ export default function SiteHome({ content }: { content: SiteContent }) {
           </div>
         </section>
 
-        {/* ========== 4. 我的戰績 ========== */}
+        {/* ========== 6. 我的戰績 ========== */}
         <section className="section section-dark" id="record">
           <div className="wrap">
             <header className="section-head section-head-light">
@@ -347,7 +562,97 @@ export default function SiteHome({ content }: { content: SiteContent }) {
           </div>
         </section>
 
-        {/* ========== 5. 服務項目 ========== */}
+        {/* ========== 7. 客戶評價（可在後台關掉） ========== */}
+        {/*
+          🔴 星等與則數由後台填，**必須照 Google 商家後台的實際數字**。
+          這裡刻意不做 JSON-LD 的 aggregateRating —— 自家網站宣稱自家評分，
+          Google 的結構化資料規範把它歸類為 self-serving review，標了反而會被判違規。
+          要讓評分出現在搜尋結果，靠的是 Google 商家檔案本身，不是這一頁。
+        */}
+        {show.reviews && (
+        <section className="section section-soft" id="reviews">
+          <div className="wrap">
+            <header className="section-head">
+              <p className="section-en">GOOGLE REVIEWS</p>
+              <h2>客戶怎麼說</h2>
+              <p className="section-sub">
+                下面每一則都在 Google 商家評論頁看得到。
+                <strong>那裡我沒辦法自己新增或刪除</strong>，所以那才是最誠實的一頁。
+              </p>
+            </header>
+
+            <div className="review-layout">
+              <aside className="review-score">
+                {content.reviewsRating && (
+                  <p className="rs-num">
+                    {content.reviewsRating}
+                    <span className="rs-star" aria-hidden="true">★</span>
+                  </p>
+                )}
+                <p className="rs-label">Google 商家評分</p>
+                {content.reviewsCount && <p className="rs-count">{content.reviewsCount} 則真實評論</p>}
+                {content.reviewsUrl && (
+                  <a className="btn btn-outline btn-sm" href={content.reviewsUrl} target="_blank" rel="noreferrer">
+                    在 Google 看全部 →
+                  </a>
+                )}
+              </aside>
+
+              {content.reviews.length > 0 && (
+                <div className="review-grid">
+                  {content.reviews.map((review, index) => (
+                    <article className="review-card" key={index}>
+                      <p className="rv-stars" aria-hidden="true">★★★★★</p>
+                      <p className="rv-text">「{review.text}」</p>
+                      <p className="rv-who">
+                        <strong>{review.name}</strong>
+                        {review.source && <span>{review.source}</span>}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+        )}
+
+        {/* ========== 8. 媒體報導（可在後台關掉） ========== */}
+        {show.media && (
+        <section className="section section-dark" id="media">
+          <div className="wrap">
+            <header className="section-head section-head-light">
+              <p className="section-en">MEDIA</p>
+              <h2>媒體報導</h2>
+              <p className="section-sub">每一則都附原文連結，點開就能自己確認。</p>
+            </header>
+
+            <div className="media-grid">
+              {content.mediaItems.map((item, index) => (
+                <a
+                  className="media-card"
+                  key={index}
+                  href={item.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <p className="md-outlet">{item.outlet}</p>
+                  <h3>{item.title}</h3>
+                  <p className="md-date">{item.date}</p>
+                </a>
+              ))}
+            </div>
+
+            {content.mediaQuote && (
+              <blockquote className="media-quote">
+                <p>{content.mediaQuote}</p>
+              </blockquote>
+            )}
+          </div>
+        </section>
+        )}
+
+        {/* ========== 9. 服務項目 ========== */}
         <section className="section" id="services">
           <div className="wrap">
             <header className="section-head">
@@ -445,7 +750,65 @@ export default function SiteHome({ content }: { content: SiteContent }) {
           </div>
         </section>
 
-        {/* ========== 6. 預約諮詢 ========== */}
+        {/* ========== 10. 房產知識（可在後台關掉） ========== */}
+        {show.articles && (
+        <section className="section section-soft" id="articles">
+          <div className="wrap">
+            <header className="section-head">
+              <p className="section-en">KNOWLEDGE</p>
+              <h2>房產知識・白話拆給你聽</h2>
+              <p className="section-sub">
+                稅、貸款、糾紛、政策。你會遇到的問題，我先寫成一篇讓你自己看得懂。
+              </p>
+            </header>
+
+            <div className="article-grid">
+              {content.articles.map((article, index) => (
+                <a
+                  className="article-card"
+                  key={index}
+                  href={article.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {article.category && <p className="ar-cat">{article.category}</p>}
+                  <h3>{article.title}</h3>
+                  {article.excerpt && <p className="ar-excerpt">{article.excerpt}</p>}
+                  <span className="ar-more">看全文 →</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+        )}
+
+        {/* ========== 11. 免費工具／查詢（可在後台關掉） ========== */}
+        {show.tools && (
+        <section className="section" id="tools">
+          <div className="wrap">
+            <header className="section-head">
+              <p className="section-en">FREE TOOLS</p>
+              <h2>免費工具／查詢</h2>
+              <p className="section-sub">
+                不用先加我 LINE，也不用留電話。自己先算、先查，覺得需要人幫忙再找我。
+              </p>
+            </header>
+
+            <div className="tool-grid">
+              {content.toolItems.map((tool, index) => (
+                <a className="tool-card" key={index} href={tool.url} target="_blank" rel="noreferrer">
+                  {tool.tag && <p className="tl-tag">{tool.tag}</p>}
+                  <h3>{tool.title}</h3>
+                  {tool.desc && <p className="tl-desc">{tool.desc}</p>}
+                  <span className="tl-more">開始使用 →</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+        )}
+
+        {/* ========== 12. 預約諮詢 ========== */}
         <section className="section section-soft" id="booking">
           <div className="wrap">
             <header className="section-head">
@@ -567,6 +930,27 @@ export default function SiteHome({ content }: { content: SiteContent }) {
           <p><a href="#top">回到頁首 ↑</a></p>
         </div>
       </footer>
+
+      {/* 桌機右側快捷鈕。手機不顯示 —— 那邊已經有置底那一條，兩個一起出現會蓋到內容 */}
+      <div className="side-dock" aria-label="快速聯絡">
+        <Link className="dock-btn dock-book" href="/card/booking">
+          <CalendarIcon className="" />
+          <span className="dock-label">線上預約</span>
+        </Link>
+        <a
+          className="dock-btn dock-line"
+          href={PROFILE.social.line}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <LineIcon className="" />
+          <span className="dock-label">LINE 諮詢</span>
+        </a>
+        <a className="dock-btn dock-tel" href={tel}>
+          <PhoneIcon className="" />
+          <span className="dock-label">{PROFILE.phone}</span>
+        </a>
+      </div>
 
       {/* 手機置底快速聯絡列 */}
       <div className="sticky-bar" aria-label="快速聯絡">

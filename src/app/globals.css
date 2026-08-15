@@ -1,4 +1,4 @@
-﻿/* =========================================================
+/* =========================================================
    品牌色：有巢氏房屋 CIS（陳書亞｜屏東房產）
    ---------------------------------------------------------
    主色 #005335　輔色 #4FAF38　強調 #D8261C
@@ -959,6 +959,63 @@ a {
 
 .content-row {
   margin-bottom: 10px;
+}
+
+/* 區塊開關。整個後台最容易被忽略、但後果最大的一格：
+   沒打勾＝那一區在官網上根本不存在。所以做得比一般欄位更顯眼，
+   而且「現在是開還是關」要用文字寫出來，不能只靠一個小方框的勾。 */
+.section-switch {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid #124A33;
+  border-radius: 10px;
+  background: #04291B;
+  cursor: pointer;
+}
+
+.section-switch.on {
+  border-color: var(--gold-500);
+  background: #063A26;
+}
+
+.section-switch input {
+  grid-row: 1 / 3;
+  width: 22px;
+  height: 22px;
+  accent-color: var(--gold-500);
+  cursor: pointer;
+}
+
+.ss-state {
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.ss-note {
+  color: #9DB5A8;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* 可重複填的一筆資料。沒有框線的話，第 3 筆的最後一格跟第 4 筆的第一格
+   在畫面上會連成一片，很容易填錯行。 */
+.repeat-row {
+  margin: 0 0 14px;
+  padding: 14px 16px 4px;
+  border: 1px solid #124A33;
+  border-radius: 10px;
+}
+
+.repeat-no {
+  margin: 0 0 10px;
+  color: #BFDCCB;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .08em;
 }
 
 .content-actions {

@@ -1,0 +1,298 @@
+/* =============================================================
+   blog.css｜屏東房產研究室（/blog）專用樣式
+   -------------------------------------------------------------
+   【來源】
+   版型骨架來自一份 63 行的參考實作（規格書「00-建置規格書」附錄 A 已
+   整理成書亞版）。選擇器結構、DOM 順序、數值、圓角、間距、字級、行高、
+   flex/grid 設定一律 1:1 搬過來，只做兩件事：
+     ① 全部類名加 `bl-` 前綴
+     ② 顏色換成書亞的有巢氏 CIS 綠代幣
+   🔴 只沿用版型與 CSS，**站上文字全部原創**，沒有沿用任何外部文案。
+   要改版型前先回去看規格書附錄 A，不要憑印象改這支檔。
+
+   【代幣對照原則】（詳見規格書 §2.2 / §2.3）
+   - 深藍 → --bl-deep #005335（有巢氏主色）。原站「深底」與「文字」共用
+     同一個 navy，這裡拆成兩支：深底用 --bl-deep，文字用 --bl-ink #173D30。
+   - teal → --bl-link #0A6D48。不用輔色綠 #4FAF38，它對白底只有 2.6:1。
+   - 橘 → --bl-accent #D9660A，只用在「有底色＋白字」或大字；
+     12.5px 以下的小橘字改用 --bl-accent-ink #B85305（4.9:1）。
+     原站小字橘對比不足，這裡修掉，不跟著錯。
+   - 沙色 → --bl-band #CDE3D5（h2 上邊線，全站辨識度最高的一筆）。
+   - 原站寫死的十個硬編碼色（#cdd8e2 / #33465a / #eaf2f3 …）
+     全部改為 --bl-* 衍生代幣，沒有任何裸色碼殘留（純白 #fff 除外）。
+
+   【為什麼不 import site.css / globals.css】
+   1. 撞名：site.css 有全域的 .wrap / .lead / .eyebrow，與本檔的容器、
+      副標、眉標同名。App Router 客戶端導覽會讓 CSS 累積，「從首頁點進
+      部落格」時兩套規則會同時在場，撞名一定破版。所以本檔全部 bl- 前綴，
+      並且自己宣告一份 --bl-* 代幣，不去引用那兩支的變數。
+   2. 職責：site.css 是行銷首頁的樣式（滿版 hero、深色區塊、動畫），
+      部落格要的是白底長文閱讀版型，兩者的基礎設定（行高、字級、
+      ul 樣式）互相打架。
+   3. 風險：那兩支是既有頁面的命脈，本檔一個字都不去動它們。
+
+   【🔴 雙向隔離：本檔不留任何會打出去的裸元素選擇器】
+   前一版只做了單向防禦（擋 site.css 打進來），沒擋本檔打出去。
+   2026-08-14 用 dev server（:3150）實測，動線是首頁 →（客戶端導覽）→ /blog
+   → 上一頁回首頁，量的是 getComputedStyle，不是肉眼：
+
+     stylesheet 累積｜globals + site（3 支）→ globals + site + blog（4 支）
+                     blog.css 排在最後，平手時它贏 → 確認會累積，不會被移除
+
+     首頁 body 背景 ｜#F2F7F3 → #fff（整頁底色被洗白）
+     首頁 body 行高 ｜normal  → 28.8px（＝1.8；凡是沒自己寫 line-height
+                                的元素全部被撐開，這是「間距跑掉」的真兇）
+     首頁品牌／導覽 ｜#173D30 → #0A6D48（site.css 的 a{color:inherit} 被蓋）
+     首頁頁尾連結  ｜#fff    → #0A6D48（深色頁尾上的白字連結變深綠＝幾乎看不見，
+                                這一條最傷）
+     /card 連結    ｜#fff    → #0A6D48，且底線 underline → none
+     /card h1 字重 ｜700     → 900
+     /card body    ｜#F2F7F3 → #fff、行高 normal → 28.8px
+   （/card 受災比首頁重，因為它沒 import site.css，本檔的裸選擇器等於沒有對手。）
+
+   目前 /blog 底下全部用原生 <a>（零 JS 規格），所以「今天」還走不到這條動線；
+   上面是用 App Router 同一顆 router 實例（<Link> 點下去走的就是它）壓出來的。
+   只要哪天首頁導覽列補一個 <Link href="/blog">，這個 bug 就當場活過來——
+   部落格本來就該從首頁連得到，所以那是遲早的事，不是假設。
+
+   修法：所有裸元素選擇器改掛在部落格最外層的 `.bl-shell` 底下，
+   並且一律用 `:where()` 包外層 —— `:where()` 特異度為 0，
+   `:where(.bl-shell) a` 與原本的 `a` **完全同權重 (0,0,1)**，
+   所以部落格自己的層疊順序一個字都沒變（實測前後 computed style 全同）。
+   若改用一般的 `.bl-shell a`(0,1,1)，`.bl-logo`(0,1,0) 會反被蓋成綠色——
+   這就是為什麼這裡非用 `:where()` 不可，不是為了炫技。
+
+   【字型】
+   --bl-font 用 Noto Sans TC 系統堆疊，字重 400/500/700/900 已由根
+   layout 載好，本檔不重載。--bl-mono 用系統等寬堆疊，**不載
+   IBM Plex Mono**：它不含中文，中文分類名本來就會 fallback，等寬只
+   影響數字與拉丁字母，省一支外部字型請求。
+
+   【存檔】🔴 不可寫入 UTF-8 BOM。BOM 會讓 Turbopack 把 CSS 變數整包
+   弄失效（本專案踩過）。
+   ============================================================= */
+
+/* ── 代幣 ───────────────────────────────────── */
+:root{
+  --bl-deep:#005335;        /* 深底：util、cta-box、logo 方塊、表頭 */
+  --bl-ink:#173D30;         /* 正文字色、h1/h2、strong */
+  --bl-ink-2:#234E3F;       /* verdict 答案內文、prose h3 */
+  --bl-ink-3:#33514A;       /* tldr / spec dd / qa p / blockquote */
+  --bl-paper:#F2F7F3;       /* 淺底：spec dt 底 */
+  --bl-link:#0A6D48;        /* 連結、tldr 左邊線、FAQ ＋－ */
+  --bl-accent:#D9660A;      /* CTA 底、logo 方塊底、blockquote 左線、verdict 外框 */
+  --bl-accent-ink:#B85305;  /* 小字橘：eyebrow、卡片分類、LINE 選單、spec-tag strong */
+  --bl-accent-soft:#FFF0E1; /* verdict 標題帶 */
+  --bl-band:#CDE3D5;        /* h2 上方 2px 邊線（原站的 sand） */
+  --bl-tint:#E8F5E4;        /* spec 標題列底 */
+  --bl-line:#D8E7DD;        /* 所有邊框 */
+  --bl-mut:#64776F;         /* 次要文字：摘要、日期、註記、麵包屑 */
+  --bl-deep-fg:#CFE2D6;     /* util 文字 */
+  --bl-deep-fg2:#E4F0E9;    /* cta-box 文字 */
+  --bl-deep-fg3:#B9D2C4;    /* cta-box 說明 */
+  --bl-deep-fg4:#90AE9E;    /* cta-box 小字 */
+  --bl-font:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Segoe UI",system-ui,sans-serif;
+  --bl-mono:ui-monospace,"SF Mono","Roboto Mono",Menlo,Consolas,monospace;
+}
+
+/* ── 基礎（覆寫 globals.css 的淺綠底） ─────────── */
+/* 原站第 2 行的 *{box-sizing:border-box}。這條是本檔唯一留下來的裸選擇器，
+   刻意不隔離，因為它外溢也無害：globals.css 第 71 行、site.css 第 71 行
+   都已經有值完全相同的一份，蓋過去等於沒蓋。留著讓本檔自成一體。 */
+*{box-sizing:border-box}
+/* 🔴 body 只剩 margin:0。原本掛在 body 的 background / color / font-family /
+   line-height / min-height 全部搬到 .bl-shell（見檔頭「雙向隔離」）。
+   margin:0 留在 body 是因為：① 沒有它會吃到 UA 預設的 8px 白邊；
+   ② globals.css 的 body 本來就寫著同一個 margin:0，值相同，外溢也不會害到誰。 */
+body{margin:0}
+/* 🔴 .bl-shell 是部落格的最外層盒子（blog/layout.tsx 包的那個 div）。
+   min-height:100vh 是原站沒有的一條：globals.css 的 html 也有淺綠底，
+   內容短的頁面（例如尚無文章的分類頁）footer 底下會露出一條綠。
+   撐滿一屏即可解決，且不必去動 html。
+   ⚠️ 這個 class 與 layout.tsx 的最外層 div 是綁在一起的，
+      拿掉任何一邊，部落格會變成 globals.css 的淺綠底＋行高跑掉。 */
+.bl-shell{background:#fff;color:var(--bl-ink);font-family:var(--bl-font);line-height:1.8;min-height:100vh}
+.bl-wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+.bl-wrap-narrow{max-width:720px;margin:0 auto;padding:0 20px}
+.bl-mono{font-family:var(--bl-mono)}
+/* 🔴 :where() 不加特異度，這三條與原本的裸 a / a:hover / img 完全同權重，
+   部落格內部的層疊順序未變（例如 .bl-logo(0,1,0) 仍然壓得過這裡的 (0,0,1)）。
+   不要「順手」把 :where() 拿掉改寫成 .bl-shell a，那會把 .bl-logo 蓋成綠色。 */
+:where(.bl-shell) a{color:var(--bl-link);text-decoration:none}
+:where(.bl-shell) a:hover{text-decoration:underline}
+:where(.bl-shell) img{max-width:100%;height:auto}
+
+/* ── 跳過連結 ──────────────────────────────── */
+.bl-skip{position:absolute;left:-999px}
+.bl-skip:focus{left:8px;top:8px;background:#fff;padding:8px;z-index:99}
+
+/* ── 頂部資訊條 ────────────────────────────── */
+.bl-util{background:var(--bl-deep);color:var(--bl-deep-fg);font-size:12.5px}
+.bl-util .bl-wrap{display:flex;justify-content:space-between;padding:7px 20px;flex-wrap:wrap;gap:6px}
+.bl-util a{color:var(--bl-deep-fg)}
+.bl-util a:hover{color:#fff}
+.bl-util b{color:#fff;font-weight:500}
+
+/* ── 導覽列 ────────────────────────────────── */
+.bl-nav{border-bottom:1px solid var(--bl-line);background:#fff;position:sticky;top:0;z-index:20}
+.bl-nav .bl-wrap{display:flex;align-items:center;gap:22px;padding:12px 20px}
+/* white-space:nowrap 是原站沒有的一條：「書亞｜屏東房產」比原站的品牌字串長，
+   360px 下 logo 文字會被 flex 擠成三行（實測），品牌讀起來像壞掉。
+   nowrap 之後 logo 一行完整，導覽項目改在右側多換一行，實測不會水平溢出。
+   若書亞想要導覽列矮一點，拿掉這一條即可。 */
+.bl-logo{white-space:nowrap;font-weight:900;font-size:19px;color:var(--bl-ink);display:flex;align-items:center;gap:8px}
+.bl-logo:hover{text-decoration:none}
+/* 🔴 flex:none 是原站漏掉的一條：導覽項目一多，logo 方塊會被 flex 壓扁成長方形 */
+.bl-sq{background:var(--bl-accent);color:#fff;width:30px;height:30px;display:grid;place-items:center;border-radius:7px;flex:none}
+.bl-nav ul{list-style:none;display:flex;gap:20px;margin:0 0 0 auto;padding:0;flex-wrap:wrap}
+/* 🔴 這條不能省：不寫的話整排選單會被上面的全域 a{color:var(--bl-link)} 染成綠色 */
+.bl-nav ul a{color:var(--bl-ink);font-weight:500;font-size:15px}
+
+/* ── 文章外框 ──────────────────────────────── */
+.bl-post{padding:34px 0 10px}
+
+/* ── 麵包屑 / 眉標 / 標題 / 署名 / 封面 ───────── */
+.bl-crumb{font-size:13px;color:var(--bl-mut);margin-bottom:16px}
+.bl-crumb a{color:var(--bl-mut)}
+.bl-eyebrow{font-family:var(--bl-mono);font-size:12.5px;color:var(--bl-accent-ink);letter-spacing:.14em;font-weight:500;margin-bottom:12px}
+/* 🔴 部落格只有兩個 h1：文章頁的 article.bl-post、列表／分類頁的 section.bl-bloghero。
+   同樣用 :where() 把權重壓回 (0,0,1)，跟原本的裸 h1 一模一樣，
+   所以下面 .bl-bloghero h1 (0,1,1) 照舊蓋得掉這裡的 font-size。 */
+:where(.bl-post,.bl-bloghero) h1{font-weight:900;font-size:clamp(25px,4.2vw,37px);line-height:1.32;margin:0 0 16px}
+.bl-byline{font-size:12.5px;color:var(--bl-mut);margin:0 0 22px}
+/* height:auto 是原站漏的：封面帶 width/height 屬性，只給 width:100% 會被壓成固定高 */
+.bl-cover{width:100%;height:auto;border-radius:12px;margin:6px 0 26px;border:1px solid var(--bl-line)}
+
+/* ── 重點摘要框 ────────────────────────────── */
+.bl-tldr{background:#fff;border:1px solid var(--bl-line);border-left:4px solid var(--bl-link);border-radius:10px;padding:16px 20px;margin:0 0 30px}
+.bl-tldr-h{font-size:12px;letter-spacing:.16em;color:var(--bl-link);font-weight:500;margin-bottom:6px}
+.bl-tldr p{margin:0;font-size:15.5px;color:var(--bl-ink-3)}
+
+/* ── 規格表 ────────────────────────────────── */
+.bl-spec{background:#fff;border:1px solid var(--bl-line);border-radius:12px;overflow:hidden;margin:0 0 30px}
+.bl-spec-h{background:var(--bl-tint);border-bottom:1px solid var(--bl-line);padding:12px 18px;font-weight:900;font-size:16px;color:var(--bl-ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.bl-spec-h .bl-badge{margin-left:auto;font-size:11.5px;font-weight:700;color:var(--bl-link);letter-spacing:.04em}
+.bl-spec-grid{display:grid;grid-template-columns:auto 1fr;margin:0}
+.bl-spec-grid .bl-r{display:contents}
+.bl-spec-grid dt{padding:10px 18px;font-size:13px;font-weight:700;color:var(--bl-mut);border-bottom:1px solid var(--bl-line);background:var(--bl-paper);white-space:nowrap}
+.bl-spec-grid dd{padding:10px 18px;margin:0;font-size:14.5px;color:var(--bl-ink-3);border-bottom:1px solid var(--bl-line)}
+.bl-spec-grid dd strong{color:var(--bl-ink)}
+.bl-spec-grid .bl-r:last-child dt,.bl-spec-grid .bl-r:last-child dd{border-bottom:0}
+.bl-spec-tag{padding:12px 18px;font-size:14px;color:var(--bl-ink-3);line-height:1.7;border-top:1px solid var(--bl-line)}
+.bl-spec-tag strong{color:var(--bl-accent-ink)}
+.bl-spec-src{padding:0 18px 13px;font-size:11.5px;color:var(--bl-mut);line-height:1.5}
+
+/* ── 一句話結論框 ──────────────────────────── */
+.bl-verdict{border:1.5px solid var(--bl-accent);border-radius:12px;overflow:hidden;margin:0 0 20px;background:#fff}
+.bl-verdict-h{background:var(--bl-accent-soft);padding:11px 18px;font-weight:900;font-size:15.5px;color:var(--bl-accent-ink);border-bottom:1px solid var(--bl-line)}
+.bl-verdict-b{padding:15px 18px 16px}
+.bl-vq{display:flex;gap:8px;font-size:14px;font-weight:700;color:var(--bl-ink);margin:0 0 9px;line-height:1.55}
+.bl-va{display:flex;gap:8px;font-size:15px;color:var(--bl-ink-2);margin:0 0 10px;line-height:1.7}
+.bl-va strong{color:var(--bl-ink)}
+.bl-t{flex:none;font-size:11px;font-weight:900;color:#fff;border-radius:5px;padding:2px 8px;height:fit-content;margin-top:2px}
+.bl-vq .bl-t{background:var(--bl-deep)}
+.bl-va .bl-t{background:var(--bl-accent)}
+.bl-vnote{font-size:12px;color:var(--bl-mut);border-top:1px dashed var(--bl-line);padding-top:10px;line-height:1.6}
+
+/* ── 正文 ──────────────────────────────────── */
+.bl-prose{font-size:17px}
+.bl-prose h2{font-weight:900;font-size:23px;margin:38px 0 14px;padding-top:14px;border-top:2px solid var(--bl-band)}
+.bl-prose h3{font-weight:700;font-size:19px;margin:26px 0 10px;color:var(--bl-ink-2)}
+.bl-prose p{margin:0 0 18px}
+.bl-prose img{max-width:100%;height:auto;border-radius:10px;margin:14px 0;border:1px solid var(--bl-line)}
+.bl-prose blockquote{border-left:4px solid var(--bl-accent);background:#fff;margin:20px 0;padding:12px 20px;color:var(--bl-ink-3);border-radius:0 8px 8px 0}
+.bl-prose ul,.bl-prose ol{padding-left:24px;margin:0 0 18px}
+/* 這兩條是防撞：site.css 有全域 ul{list-style:none}，客戶端導覽累積後
+   會把正文的項目符號整個吃掉。明寫回瀏覽器預設值，視覺與原站相同。 */
+.bl-prose ul{list-style:disc}
+.bl-prose ol{list-style:decimal}
+.bl-prose li{margin:7px 0}
+.bl-prose a{border-bottom:1px solid var(--bl-link)}
+.bl-prose strong{color:var(--bl-ink)}
+/* 🔴 補權重：BlSpec 依規格放在 .bl-prose 內，而 .bl-spec-tag strong 與上一行同權重（0,1,1）、
+   又寫在前面，評語裡的 <strong> 會被染成深綠。這條把規格要求的橘字搶回來。
+   （被蓋到的只有 .bl-spec-tag strong 這一個。.bl-spec-grid dd strong 是 (0,1,2)，
+     本來就贏 .bl-prose strong 的 (0,1,1)，沒有被蓋，不需要補。） */
+.bl-prose .bl-spec-tag strong{color:var(--bl-accent-ink)}
+.bl-prose table{width:100%;border-collapse:collapse;margin:22px 0;font-size:14.5px;display:block;overflow-x:auto}
+.bl-prose th,.bl-prose td{border:1px solid var(--bl-line);padding:10px 12px;text-align:left;vertical-align:top}
+.bl-prose th{background:var(--bl-deep);color:#fff;font-weight:700}
+.bl-prose tr:nth-child(even) td{background:#fff}
+.bl-prose hr{border:0;border-top:1px solid var(--bl-line);margin:32px 0}
+
+/* ── 文末 CTA ──────────────────────────────── */
+.bl-cta-box{background:var(--bl-deep);color:var(--bl-deep-fg2);border-radius:14px;padding:28px 26px;margin:40px 0 10px;text-align:center}
+.bl-cta-box h3{margin:0 0 8px;font-size:21px;font-weight:900;color:#fff}
+.bl-cta-box p{margin:0 0 14px;font-size:14.5px;color:var(--bl-deep-fg3)}
+.bl-cta-box .bl-cta{display:inline-block;background:var(--bl-accent);color:#fff;font-weight:700;padding:12px 30px;border-radius:8px;margin:4px 0 14px}
+.bl-cta-box .bl-cta:hover{opacity:.92;text-decoration:none}
+.bl-cta-box .bl-src{font-size:11.5px;color:var(--bl-deep-fg4);margin:0}
+.bl-cta-box .bl-src a{color:var(--bl-deep-fg3)}
+
+/* ── FAQ 摺疊（零 JavaScript，原生 details） ──── */
+.bl-faq{margin:42px 0 0}
+.bl-faq h2{font-weight:900;font-size:23px;margin:0 0 16px;padding-top:14px;border-top:2px solid var(--bl-band)}
+.bl-qa{border:1px solid var(--bl-line);border-radius:10px;margin:0 0 10px;background:#fff;padding:0 18px}
+.bl-qa summary{cursor:pointer;font-weight:700;padding:15px 0;font-size:16px;list-style:none;color:var(--bl-ink)}
+.bl-qa summary::-webkit-details-marker{display:none}
+.bl-qa summary::before{content:"＋";color:var(--bl-link);margin-right:10px}   /* 🔴 全形 U+FF0B，不是半形 + */
+.bl-qa[open] summary::before{content:"－"}                                    /* 🔴 全形 U+FF0D，不是半形 - */
+.bl-qa p{margin:0 0 16px;color:var(--bl-ink-3);font-size:15.5px}
+
+/* ── 列表頁 ────────────────────────────────── */
+.bl-bloghero{padding:40px 0 8px}
+.bl-bloghero h1{font-size:clamp(27px,5vw,40px)}
+.bl-lead{font-size:16px;color:var(--bl-mut);max-width:640px}
+.bl-catbar{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 8px}
+.bl-catbar a{border:1px solid var(--bl-line);border-radius:20px;padding:6px 15px;font-size:13.5px;color:var(--bl-ink);background:#fff}
+/* hover 與 current 兩條是原站沒有的：膠囊點下去要看得出停在哪一個分類 */
+.bl-catbar a:hover{border-color:var(--bl-link);color:var(--bl-link);text-decoration:none}
+.bl-catbar a[aria-current="page"]{background:var(--bl-deep);color:#fff;border-color:var(--bl-deep)}
+.bl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px;padding:24px 0 40px}
+.bl-pcard{background:#fff;border:1px solid var(--bl-line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.bl-pcard:hover{border-color:var(--bl-link);text-decoration:none}
+.bl-pcard img{width:100%;aspect-ratio:16/9;object-fit:cover}
+.bl-pcard .bl-b{padding:15px 17px;display:flex;flex-direction:column;flex:1}
+/* 原站在這裡與 .bl-d 各寫一次 font-family，本站改由 HTML 掛 .bl-mono，效果相同 */
+.bl-pcard .bl-c{font-size:11px;color:var(--bl-accent-ink);letter-spacing:.1em;margin-bottom:7px}
+.bl-pcard h2{font-size:16.5px;font-weight:700;line-height:1.45;margin:0 0 8px;color:var(--bl-ink)}
+.bl-pcard .bl-x{font-size:13px;color:var(--bl-mut);margin:0 0 10px;flex:1}
+.bl-pcard .bl-d{font-size:11.5px;color:var(--bl-mut)}
+
+/* ── 頁尾（法遵揭露區塊，每一頁都有） ────────── */
+.bl-footer{border-top:1px solid var(--bl-line);background:#fff;padding:26px 0;font-size:12.5px;color:var(--bl-mut);margin-top:30px}
+.bl-legal{font-style:normal}
+/* 🔴 收窄範圍從 .bl-legal 放寬回 .bl-footer（更接近原站的 footer.site p，也更防呆）：
+   以後在 .bl-footer 裡直接加 <p>（例如拿到公司登記全名、專任經紀人姓名後要補的那兩行），
+   如果只寫 .bl-legal p，新加的 <p> 會掉回瀏覽器預設 1em margin，行距突然變四倍。
+   ⚠️ 外層一定要包 :where()：.bl-copy 也是 <p> 且是 .bl-legal 的兄弟，
+      寫成 .bl-footer p (0,1,1) 會反過來壓掉 .bl-copy (0,1,0) 的 margin:14px 0 0。
+      :where(.bl-footer) p 是 (0,0,1)，.bl-copy 照樣贏。 */
+:where(.bl-footer) p{margin:4px 0}
+.bl-legal b{color:var(--bl-ink)}
+.bl-disclaimer{margin-top:10px!important;line-height:1.7}
+.bl-fnav{display:flex;gap:18px;flex-wrap:wrap;margin:14px 0 0}
+.bl-fnav a{color:var(--bl-mut)}
+.bl-fnav a:hover{color:var(--bl-link)}
+.bl-copy{margin:14px 0 0}
+
+/* ── 響應式（只有三個斷點） ────────────────── */
+/* 其餘全靠內建自適應：.bl-grid 用 auto-fill minmax(300px,1fr) 自動改欄數，
+   .bl-catbar / .bl-nav ul / .bl-util .bl-wrap 用 flex-wrap，h1 用 clamp()，
+   .bl-prose table 自己橫向捲。手機導覽列不變漢堡，直接換行。 */
+@media(max-width:640px){
+  .bl-nav ul{gap:13px;font-size:14px}
+  .bl-prose{font-size:16px}
+}
+@media(max-width:520px){
+  .bl-spec-grid{grid-template-columns:1fr}
+  .bl-spec-grid dt{border-bottom:0;padding:10px 18px 2px}
+  .bl-spec-grid dd{padding-top:2px}
+  .bl-util .bl-wrap span:first-child b{display:block}
+  /* 🔴 店名一換行，分隔符就會掉到第二行行首變成孤立的一撇（375px 實測過）。
+     b 變 display:block 的同一個斷點就把它藏掉，兩者一定要用同一個 520px。 */
+  .bl-util-sep{display:none}
+}
+@media(max-width:480px){
+  .bl-addr-city{display:none}
+}
