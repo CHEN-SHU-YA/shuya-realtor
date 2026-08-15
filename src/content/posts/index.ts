@@ -26,6 +26,7 @@ import { post as post1001 } from "./1001-pingtung-townhouse-site-visit";
 import { post as post1002 } from "./1002-chongda-xincheng-military-village";
 import { post as post1003 } from "./1003-spouse-gift-pingtung";
 import { post as post1004 } from "./1004-alley-townhouse-parking";
+import { post as post1005 } from "./1005-ptvgh-area";
 
 /**
  * ✅ **1002（崇大新城眷改宅）已於 2026-08-15 收回註冊。**
@@ -48,7 +49,7 @@ import { post as post1004 } from "./1004-alley-townhouse-parking";
  * 全部文章（含草稿）。新增文章就在這裡加一筆。
  * 型別標成 `readonly Post[]`，避免有人在別處 push 或排序這一份原始資料。
  */
-export const POSTS: readonly Post[] = [post1001, post1002, post1003, post1004];
+export const POSTS: readonly Post[] = [post1001, post1002, post1003, post1004, post1005];
 
 /**
  * `@/lib/blog` 讀的是這個名字（`import { posts as REGISTRY } from "@/content/posts"`）。

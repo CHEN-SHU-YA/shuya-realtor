@@ -1718,6 +1718,559 @@ function fig1004_05() {
   );
 }
 
+/* ───────────────────────────────────────────────────────────────
+   1005｜屏東榮總開診到現在，永大這一帶到底變了什麼（分類：屏東行情）
+
+   🔴 這一組圖上的每一個數字、日期與文號，都取自
+      `docs/部落格/事實庫/00-榮總商圈素材表.md` 標【已查證】的欄位，
+      而且與文章 `src/content/posts/1005-ptvgh-area.tsx` 寫的一致。
+      對照表（改字前請逐項核對）：
+        · 開業執照 111-10-14／開幕 111-11-18／正式營運 111-11-21　官網〈大事紀要〉（A-2）
+        · 區域醫院效期 115/1/1–120/12/31　衛福部 114 年度醫院評鑑名單（A-5）
+        · 地區醫院＝112 年度評鑑、效期 113/1/1–116/12/31　107-113 年名單（A-5）
+        · 教學醫院＝112 年度評鑑、效期 113/1/1–118/12/31（A-5）
+        · 急救責任醫院「中度級＊」效期 114/1/1–119/12/31 ＋ 註1 星號定義逐字（A-7）
+        · 三階段變更與文號　97/12、101、106-02-17（10604967001）、106-05-01、
+          108-04-24（10814230001）、108-05-16（10817764101）、重劃完成 112-11-08（C-3）
+        · 醫療專用區 6.44 公頃　主要計畫書表 9-1（C-4）
+        · 七條路寬度 23／19／19／18／15／12／8　主要計畫書表 5-1，調查年度 106 年（C-11）
+        · 論文檢索 2 筆、全庫書目與摘要 1,554,988 筆　國圖論文系統（D-8）
+        · 五個查證管道與各自結果（D-8 的「我查了哪裡」表）
+        · 「重要環境設施」清單與不得記載事項第六點　內政部公告原文（D-1、D-2）
+
+   🔴 圖上**刻意不放**這幾件事：
+      · **不放 622 床**。那是行政院民國 107 年核定的**規劃數**（450＋172），
+        不是現況；現況核定床數素材表列【待查】。圖上塞不下「規劃」兩個字的但書，
+        所以整個不放（同 1002 封面拿掉完工年份的理由）。
+      · **不寫「政府為醫院開闢並命名榮總東路」**——命名公告文號、日期、核定機關
+        本次全部查不到。fig-03 最後一列刻意用虛線框寫「查不到」，那一列是這張圖的重點。
+      · **不寫任何步行時間、車程、距離、房價、漲幅、議價百分比**（素材表 D-9 反面清單）。
+        fig-04 只呈現「查了哪裡、得到什麼」，不呈現任何價格數字。
+      · **不寫「開了三年」這類相對年數**——全部用民國絕對日期，圖不會自己過期。
+   🔴 「區域醫院」四個字出現的地方，一定同時帶生效日或效期；
+      「中度級＊」出現的地方，一定同時附註 1 的星號定義。兩者缺一就不要放。
+   ─────────────────────────────────────────────────────────────── */
+
+/**
+ * 1005 封面：四個日期，四件不同的事。
+ * 主標逐字取自文章 h1 的前兩段（書亞 2026-08-15 從三個變體挑定 A1，不可改字）。
+ *
+ * 🔴 節點的日期一律民國紀年，右上角那行小字就是在講這件事——
+ *    封面是 og:image，分享出去只會被看到一眼，年份用哪一套曆法不能靠讀者猜。
+ * 🔴 第四個節點（區域醫院）**必須**同時寫生效日。只寫「區域醫院」而不帶
+ *    115 年 1 月 1 日，就等於把這篇最有力的更正寫成它要更正的那句話。
+ */
+function cover1005() {
+  const W = 1200;
+  const H = 630;
+  fit("1005 封面主標 1", "屏東榮總開診到現在", 76, 1056);
+  fit("1005 封面主標 2", "永大這一帶到底變了什麼", 76, 1056);
+
+  const LINE_Y = 452;
+
+  /** 一個時間點：日期（上）→ 圓點 → 事件（下）→ 註記。`hot` 給最後那一個（橘）。 */
+  const stop = (cx, { date, label, note, hot }) => {
+    fit(`1005 封面日期「${date}」`, date, 22, 276);
+    fit(`1005 封面事件「${label}」`, label, 25, 276);
+    fit(`1005 封面註記「${note}」`, note, 19, 276);
+    return [
+      T(date, { x: cx, y: 424, size: 22, weight: 700, fill: hot ? P.accent2 : P.deep2, anchor: "middle" }),
+      badge(cx, LINE_Y, hot ? 17 : 12, { fill: hot ? P.accent : P.deep }),
+      T(label, { x: cx, y: 500, size: 25, weight: 700, fill: P.ink, anchor: "middle" }),
+      T(note, { x: cx, y: 528, size: 19, weight: 500, fill: P.deep2, anchor: "middle" })
+    ].join("");
+  };
+
+  return svgDoc(
+    W,
+    H,
+    [
+      R(0, 0, W, H, { fill: P.paper }),
+      R(0, 0, W, 10, { fill: P.deep }),
+      T("屏東行情　四個日期，四件事", { x: 72, y: 92, size: 26, weight: 700, fill: P.accent2, ls: 1 }),
+      T("屏東榮總開診到現在", { x: 72, y: 190, size: 76, weight: 900, fill: P.ink }),
+      T("永大這一帶到底變了什麼", { x: 72, y: 278, size: 76, weight: 900, fill: P.ink }),
+      R(72, 306, 96, 8, { fill: P.accent }),
+      T("先講查得到的，再講沒人講的", { x: 72, y: 356, size: 28, weight: 500, fill: P.deep2 }),
+      T("日期為民國紀年", { x: 1128, y: 356, size: 20, weight: 500, fill: P.deep2, anchor: "end" }),
+
+      PATH(`M120 ${LINE_Y} L1080 ${LINE_Y}`, { stroke: P.line, sw: 6 }),
+      stop(168, { date: "111 年 10 月 14 日", label: "開業執照", note: "取得執業資格那天" }),
+      stop(456, { date: "111 年 11 月 18 日", label: "開幕", note: "典禮那天" }),
+      stop(744, { date: "111 年 11 月 21 日", label: "正式營運（開診）", note: "門診開始看病人" }),
+      // 最後一個節點刻意不放在等距的 1032：「區域醫院資格生效」八個字置中後會壓過
+      // 右邊界（頁尾那條線的右端 1128）。往左收 8px，四個節點的間距差看不出來。
+      stop(1024, { date: "115 年 1 月 1 日", label: "區域醫院資格生效", note: "114 年度醫院評鑑", hot: true }),
+
+      R(72, 562, 1056, 1, { fill: P.line }),
+      T(AGENCY_NAME, { x: 72, y: 600, size: 22, weight: 500, fill: P.deep }),
+      T(BRAND, { x: 1128, y: 600, size: 22, weight: 700, fill: P.deep, anchor: "end" })
+    ].join("")
+  );
+}
+
+/**
+ * 1005 fig-01（第二節）：三個資格、三個效期。
+ * ⚠️ 上半部那句話**是被否定的講法**，一定要同時有「常見的講法」標籤與打叉記號。
+ * 🔴 底部三行小字缺一不可：
+ *    第一、二行是「114 年 12 月 31 日以前名單上寫地區醫院」的依據（這張圖的更正本體）；
+ *    第三行是註 1 的星號定義逐字——中間那根橫條寫了「中度級＊」，
+ *    星號沒有解釋就會被讀成排版符號或「打了折的中度級」。塞不下就整張不要放星號。
+ * 軸的比例：x 從 310（民國 113 年 1 月 1 日）起，一年 100px，到 1110（民國 121 年）。
+ * ⚠️ 軸不要拉到 1140：最後一個刻度的數字是置中的，貼著 1140 會超出右邊界。
+ */
+function fig1005_01() {
+  const W = 1200;
+  const H = 675;
+  const AX = 310;
+  const YEAR = 100;
+  /** 該民國年 1 月 1 日的 x。效期到某年 12 月 31 日 ＝ 畫到下一年的 1 月 1 日。 */
+  const yearX = (roc) => AX + (roc - 113) * YEAR;
+
+  const row = (y, { name, sub, from, to, span, tone }) => {
+    fit(`fig-01 資格名「${name}」`, name, 26, 230);
+    fit(`fig-01 資格註「${sub}」`, sub, 20, 230);
+    const bx = yearX(from);
+    const bw = yearX(to) - bx;
+    fit(`fig-01 效期「${span}」`, span, 20, bw - 40);
+    return [
+      T(name, { x: 60, y: y + 30, size: 26, weight: 700, fill: P.deep }),
+      T(sub, { x: 60, y: y + 54, size: 20, weight: 500, fill: P.deep2 }),
+      R(bx, y, bw, 52, { fill: tone, rx: 8 }),
+      T(span, { x: bx + 20, y: y + 33, size: 20, weight: 500, fill: P.white })
+    ].join("");
+  };
+
+  const ticks = [];
+  for (let roc = 113; roc <= 121; roc += 1) {
+    ticks.push(
+      PATH(`M${yearX(roc)} 520 L${yearX(roc)} 534`, { stroke: P.line, sw: 3 }) +
+        T(String(roc), { x: yearX(roc), y: 558, size: 20, weight: 500, fill: P.deep2, anchor: "middle" })
+    );
+  }
+
+  return svgDoc(
+    W,
+    H,
+    [
+      R(0, 0, W, H, { fill: P.white }),
+      figHeading("開幕那天，它還不是區域醫院", "三個資格分屬三套評定，取得的順序跟直覺相反"),
+
+      R(60, 152, 1080, 90, { fill: P.white, stroke: P.line, sw: 2, rx: 14 }),
+      R(88, 178, 150, 40, { fill: P.accent, rx: 20 }),
+      T("常見的講法", { x: 163, y: 206, size: 21, weight: 700, fill: P.white, anchor: "middle" }),
+      T(fit("fig-01 被否定的講法", "開幕那天就已經是區域醫院", 25, 730), {
+        x: 264,
+        y: 214,
+        size: 25,
+        weight: 500,
+        fill: P.ink
+      }),
+      crossMark(1062, 205, 38),
+
+      // 115 年 1 月 1 日那條線畫在橫條**之前**（壓在底下），不然虛線會切過三根橫條的字。
+      PATH(`M${yearX(115)} 274 L${yearX(115)} 520`, { stroke: P.accent, sw: 2.5, dash: "8 7" }),
+      T("115 年 1 月 1 日", { x: yearX(115), y: 266, size: 19, weight: 700, fill: P.accent2, anchor: "middle" }),
+
+      row(286, {
+        name: "教學醫院",
+        sub: "112 年度評鑑",
+        from: 113,
+        to: 119,
+        span: "效期 113 年 1 月 1 日至 118 年 12 月 31 日",
+        tone: P.deep2
+      }),
+      row(356, {
+        name: "急救責任醫院",
+        sub: "中度級＊",
+        from: 114,
+        to: 120,
+        span: "效期 114 年 1 月 1 日至 119 年 12 月 31 日",
+        tone: P.deep
+      }),
+      row(426, {
+        name: "區域醫院",
+        sub: "114 年度評鑑",
+        from: 115,
+        to: 121,
+        span: "效期 115 年 1 月 1 日至 120 年 12 月 31 日",
+        tone: P.accent
+      }),
+
+      PATH(`M${yearX(113)} 520 L${yearX(121)} 520`, { stroke: P.line, sw: 3 }),
+      T("民國", { x: AX - 28, y: 558, size: 20, weight: 500, fill: P.deep2, anchor: "end" }),
+      ticks.join(""),
+
+      R(60, 574, 1080, 88, { fill: P.paper, rx: 14 }),
+      T(fit("fig-01 底部 1", "114 年 12 月 31 日以前，衛福部名單上的健保特約類別與醫院評鑑結果都是「地區醫院」", 21, 1024), {
+        x: 88,
+        y: 606,
+        size: 21,
+        weight: 700,
+        fill: P.ink
+      }),
+      T(fit("fig-01 底部 2", "該筆為 112 年度評鑑、效期 113 年 1 月 1 日至 116 年 12 月 31 日", 19, 1024), {
+        x: 88,
+        y: 632,
+        size: 19,
+        weight: 500,
+        fill: P.deep2
+      }),
+      T(fit("fig-01 底部 3", "註1：中度級＊為通過中度級但「高危險妊娠孕產婦及新生兒照護」章節能力未申請評定", 19, 1024), {
+        x: 88,
+        y: 656,
+        size: 19,
+        weight: 500,
+        fill: P.deep2
+      })
+    ].join("")
+  );
+}
+
+/**
+ * 1005 fig-02（第五節）：同一塊地的三個身分。
+ * 🔴 中間那張的重點是**缺席**：民國 101 年那一輪劃的是住宅區與兩個專用區，
+ *    裡面**沒有**醫療專用區；醫療專用區是民國 108 年這一輪才變更過來的。
+ *    底部第二行是「5 月 21 日」那個常見錯誤的更正，不要因為版面擠就拿掉。
+ */
+function fig1005_02() {
+  const W = 1200;
+  const H = 675;
+  const Y = 176;
+  const CW = 330;
+  const CH = 372;
+
+  const stage = (x, { tone, head, name, plan, doc, bullets, caption }) => {
+    fit(`fig-02 階段「${head}」`, head, 26, CW - 40);
+    fit(`fig-02 分區名「${name}」`, name, 27, CW - 40);
+    fit(`fig-02 依據上行「${plan}」`, plan, 20, CW - 72);
+    fit(`fig-02 依據下行「${doc}」`, doc, 18, CW - 72);
+    fit(`fig-02 說明「${caption}」`, caption, 21, CW - 32);
+    return [
+      R(x, Y, CW, CH, { fill: P.white, stroke: P.line, sw: 2, rx: 16 }),
+      topRoundRect(x + 1, Y + 1, CW - 2, 54, 15, tone),
+      T(head, { x: x + CW / 2, y: Y + 37, size: 26, weight: 700, fill: P.white, anchor: "middle" }),
+      T(name, { x: x + CW / 2, y: Y + 104, size: 27, weight: 700, fill: P.ink, anchor: "middle" }),
+      R(x + 20, Y + 124, CW - 40, 76, { fill: P.paper, rx: 10 }),
+      T(plan, { x: x + 36, y: Y + 154, size: 20, weight: 700, fill: P.deep2 }),
+      T(doc, { x: x + 36, y: Y + 184, size: 18, weight: 500, fill: P.deep2 }),
+      bullets
+        .map((line, i) => {
+          const by = Y + 236 + i * 34;
+          fit(`fig-02 條列「${line}」`, line, 20, CW - 64);
+          return R(x + 24, by - 12, 10, 10, { fill: tone, rx: 2 }) + T(line, { x: x + 44, y: by, size: 20, fill: P.ink });
+        })
+        .join(""),
+      bottomRoundRect(x + 1, Y + CH - 54, CW - 2, 53, 15, P.paper),
+      T(caption, { x: x + CW / 2, y: Y + CH - 20, size: 21, weight: 500, fill: P.ink, anchor: "middle" })
+    ].join("");
+  };
+
+  return svgDoc(
+    W,
+    H,
+    [
+      R(0, 0, W, H, { fill: P.white }),
+      figHeading("同一塊地，三個身分", "醫療專用區是民國 108 年這一輪才出現的，不是民國 101 年那一輪"),
+
+      stage(60, {
+        tone: P.deep2,
+        head: "民國 101 年之前",
+        name: "機十　機關用地",
+        plan: "民國 97 年 12 月",
+        doc: "國防部核定營區遷建",
+        bullets: ["原為陸軍空降訓練中心", "都市計畫編為機關用地", "民國 101 年啟動個案變更"],
+        caption: "這時還沒有醫療專用區"
+      }),
+      arrowRight(394, 350, 431, { color: P.deep2, sw: 4, head: 12 }),
+      stage(435, {
+        tone: P.deep,
+        head: "民國 106 年那一輪",
+        name: "住宅區＋兩個專用區",
+        plan: "主要計畫 106 年 2 月 17 日",
+        doc: "屏府城都字第 10604967001 號",
+        bullets: ["住宅區、公園、道路", "樂齡產業專用區", "運動休閒健康專用區"],
+        caption: "這一輪裡沒有醫療專用區"
+      }),
+      arrowRight(769, 350, 806, { color: P.accent2, sw: 4, head: 12 }),
+      stage(810, {
+        tone: P.accent,
+        head: "民國 108 年這一輪",
+        name: "醫療專用區",
+        plan: "主要計畫 108 年 4 月 24 日",
+        doc: "屏府城都字第 10814230001 號",
+        bullets: ["由兩個專用區與公園用地變更", "醫療專用區 6.44 公頃", "建蔽率 60%、容積率 360%"],
+        caption: "細部計畫 108 年 5 月 16 日"
+      }),
+
+      R(60, 566, 1080, 94, { fill: P.paper, rx: 14 }),
+      T(fit("fig-02 底部 1", "重劃完成記在民國 112 年 11 月 8 日（屏東縣政府地政處公辦市地重劃區一覽表）", 22, 1024), {
+        x: 88,
+        y: 604,
+        size: 22,
+        weight: 700,
+        fill: P.ink
+      }),
+      T(fit("fig-02 底部 2", "新聞常寫的「5 月 21 日」，是細部計畫「自同年 5 月 21 日起公告實施」的實施日", 20, 1024), {
+        x: 88,
+        y: 638,
+        size: 20,
+        weight: 500,
+        fill: P.deep2
+      })
+    ].join("")
+  );
+}
+
+/**
+ * 1005 fig-03（第七節）：七條路的官方寬度，加一列查不到的。
+ * 🔴 最後那一列是這張圖的重點：**「榮總東路」不在表 5-1 裡**，
+ *    命名公告文號、日期與核定機關本次都查不到，所以畫成虛線空框。
+ *    ⚠️ 不可以把它畫成一根有長度的柱子——那等於自己編一個寬度出來。
+ * 🔴 也不可以寫「政府為醫院開闢並命名榮總東路」：命名公告查不到。
+ * 比例尺：1 公尺 ＝ 30px，柱子從 x=300 起算（最長的和平路 23 公尺到 x=990）。
+ */
+function fig1005_03() {
+  const W = 1200;
+  const H = 675;
+  const BX = 300;
+  const SCALE = 30;
+
+  const road = (y, { name, kind, meters, hot }) => {
+    fit(`fig-03 路名「${name}」`, name, 25, 110);
+    fit(`fig-03 分類「${kind}」`, kind, 19, 110);
+    const bw = meters * SCALE;
+    return [
+      T(name, { x: 60, y: y + 26, size: 25, weight: 700, fill: hot ? P.accent2 : P.ink }),
+      T(kind, { x: 176, y: y + 26, size: 19, weight: 500, fill: P.deep2 }),
+      R(BX, y, bw, 36, { fill: hot ? P.accent : P.deep2, rx: 4 }),
+      T(`${meters} 公尺`, { x: BX + bw + 14, y: y + 26, size: 21, weight: 700, fill: hot ? P.accent2 : P.ink })
+    ].join("");
+  };
+
+  const rows = [
+    { name: "和平路", kind: "主要道路", meters: 23 },
+    { name: "建國路", kind: "主要道路", meters: 19 },
+    { name: "大同路", kind: "次要道路", meters: 19 },
+    { name: "華盛街", kind: "次要道路", meters: 18 },
+    { name: "大武路", kind: "次要道路", meters: 15 },
+    { name: "永大路", kind: "次要道路", meters: 12, hot: true },
+    { name: "武昌街", kind: "次要道路", meters: 8 }
+  ];
+
+  return svgDoc(
+    W,
+    H,
+    [
+      R(0, 0, W, H, { fill: P.white }),
+      figHeading("永大路 12 公尺，是七條裡最窄的兩條之一", "官方調查把它列為次要道路；最寬的是和平路 23 公尺", { size: 42 }),
+
+      rows.map((item, i) => road(178 + i * 50, item)).join(""),
+
+      // 查不到的那一列：虛線空框，框裡直接寫「查不到」。
+      T("榮總東路", { x: 60, y: 554, size: 25, weight: 700, fill: P.accent2 }),
+      T("不在表 5-1", { x: 176, y: 554, size: 19, weight: 500, fill: P.accent2 }),
+      R(BX, 528, 690, 36, { fill: "none", stroke: P.accent2, sw: 3, rx: 4, dash: "12 9" }),
+      T(fit("fig-03 查不到那一列", "命名公告文號、日期與核定機關　查不到", 21, 650), {
+        x: BX + 345,
+        y: 553,
+        size: 21,
+        weight: 700,
+        fill: P.accent2,
+        anchor: "middle"
+      }),
+
+      R(60, 588, 1080, 74, { fill: P.paper, rx: 14 }),
+      T(fit("fig-03 底部 1", "這是民國 106 年的現況調查值，不是計畫寬度，也不是現在的實測值", 21, 1024), {
+        x: 88,
+        y: 620,
+        size: 21,
+        weight: 700,
+        fill: P.ink
+      }),
+      T(fit("fig-03 底部 2", "主要計畫書表 5-1「變更基地周邊主次要道路幾何佈設一覽表」，原表的人行道寬度欄位全部空白", 19, 1024), {
+        x: 88,
+        y: 648,
+        size: 19,
+        weight: 500,
+        fill: P.deep2
+      })
+    ].join("")
+  );
+}
+
+/**
+ * 1005 fig-04（第十節）：「醫院旁邊比較保值」查了五個地方。
+ * 🔴 這張圖上**一個房價數字都沒有**，而且不可以加。素材表 D-9 列了一份反面清單
+ *    （議價幅度百分比、幾倍、高幾成），那些數字只出現在業者自製內容，
+ *    連「拿來當反例」都不行——圖上出現過的數字，讀者只會記得數字本身。
+ * 🔴 GRB 那一列必須寫「無法確認」而不是「沒有」：查證當日該站顯示系統升級公告。
+ *    把「查不了」寫成「沒有」，是這一節唯一會毀掉可信度的錯。
+ */
+function fig1005_04() {
+  const W = 1200;
+  const H = 675;
+
+  const channel = (i, { name, result }) => {
+    const y = 176 + i * 76;
+    fit(`fig-04 管道「${name}」`, name, 24, 592);
+    fit(`fig-04 結果「${result}」`, result, 20, 592);
+    return [
+      R(60, y, 640, 68, { fill: P.paper, rx: 10 }),
+      T(name, { x: 84, y: y + 30, size: 24, weight: 700, fill: P.deep }),
+      T(result, { x: 84, y: y + 58, size: 20, weight: 500, fill: P.ink })
+    ].join("");
+  };
+
+  const chip = (x, label) =>
+    [
+      R(x, 288, 130, 46, { fill: P.paper, rx: 23 }),
+      T(label, { x: x + 65, y: 319, size: 24, weight: 700, fill: P.deep, anchor: "middle" })
+    ].join("");
+
+  return svgDoc(
+    W,
+    H,
+    [
+      R(0, 0, W, H, { fill: P.white }),
+      figHeading("「醫院旁邊比較保值」：查了五個地方", "四個沒找到，一個當天系統升級查不了；查得到的只有兩篇碩士論文"),
+
+      channel(0, { name: "臺灣博碩士論文知識加值系統", result: "論文名稱精準檢索「醫院」與「房價」：2 筆" }),
+      channel(1, { name: "內政部不動產資訊平台", result: "查不到以醫院對周邊房價影響為題的官方統計" }),
+      channel(2, { name: "內政部建築研究所", result: "業務統計與出版品檢索：查不到" }),
+      channel(3, { name: "政府研究資訊系統 GRB", result: "查證當日顯示系統升級公告，無法確認" }),
+      channel(4, { name: "一般搜尋引擎", result: "出現的都是業者自製內容，未註明資料來源" }),
+
+      R(740, 176, 400, 372, { fill: P.white, stroke: P.line, sw: 2, rx: 16 }),
+      topRoundRect(741, 177, 398, 54, 15, P.deep),
+      T("唯一查得到的數字", { x: 940, y: 213, size: 26, weight: 700, fill: P.white, anchor: "middle" }),
+      T("論文題目同時出現", { x: 940, y: 272, size: 21, weight: 500, fill: P.ink, anchor: "middle" }),
+      chip(790, "醫院"),
+      chip(960, "房價"),
+      T("2 筆", { x: 940, y: 418, size: 64, weight: 900, fill: P.accent2, anchor: "middle" }),
+      T(fit("fig-04 全庫筆數", "全庫書目與摘要 1,554,988 筆", 20, 360), {
+        x: 940,
+        y: 456,
+        size: 20,
+        weight: 500,
+        fill: P.deep2,
+        anchor: "middle"
+      }),
+      R(768, 478, 10, 10, { fill: P.accent, rx: 2 }),
+      T("兩篇的結論方向不一致", { x: 790, y: 488, size: 20, weight: 500, fill: P.ink }),
+      R(768, 512, 10, 10, { fill: P.accent, rx: 2 }),
+      T("沒有一篇以屏東為研究範圍", { x: 790, y: 522, size: 20, weight: 500, fill: P.ink }),
+
+      R(60, 566, 1080, 94, { fill: P.paper, rx: 14 }),
+      T(fit("fig-04 底部 1", "兩篇都是碩士論文：一篇以高雄市住宅大樓為對象，一篇研究新竹地區疫情期間的變化", 22, 1024), {
+        x: 88,
+        y: 604,
+        size: 22,
+        weight: 700,
+        fill: P.ink
+      }),
+      T(fit("fig-04 底部 2", "所以這篇不寫「研究顯示會漲」，也不寫「研究顯示會跌」", 20, 1024), {
+        x: 88,
+        y: 638,
+        size: 20,
+        weight: 500,
+        fill: P.deep2
+      })
+    ].join("")
+  );
+}
+
+/**
+ * 1005 fig-05（第十一節）：法規原文用的詞是「重要環境設施」。
+ * 🔴 左邊那個圓圈是**示意**，不是地圖：圈裡六個點的位置沒有任何地理意義，
+ *    所以底下那條說明帶一定要留著。畫成看起來像實際位置的樣子，就是自己編距離。
+ * ⚠️ 「嫌惡設施」四個字上面的叉，一定畫在字**之前**（壓在字底下）；
+ *    先字後叉會把四個字切成碎塊，讀起來像圖壞了，而不是「這個詞不在法規裡」。
+ */
+function fig1005_05() {
+  const W = 1200;
+  const H = 675;
+  const CX = 320;
+  const CY = 390;
+
+  /** 圈裡的一個設施點：小圓 ＋ 底下的名稱。位置純示意。 */
+  const spot = (x, y, label) => {
+    fit(`fig-05 設施「${label}」`, label, 18, 150);
+    return (
+      `<circle cx="${x}" cy="${y}" r="7" fill="${P.deep}"/>` +
+      T(label, { x, y: y + 26, size: 18, weight: 500, fill: P.ink, anchor: "middle" })
+    );
+  };
+
+  return svgDoc(
+    W,
+    H,
+    [
+      R(0, 0, W, H, { fill: P.white }),
+      figHeading("法規寫的是「重要環境設施」", "醫院跟市場、學校、警察局排在同一份清單裡，法規不做好壞評價"),
+
+      // 左：說明書「周邊環境」那一頁的圖面示意
+      R(60, 168, 520, 420, { fill: P.white, stroke: P.line, sw: 2, rx: 16 }),
+      topRoundRect(61, 169, 518, 54, 15, P.deep),
+      T("不動產說明書　周邊環境那一頁", { x: 320, y: 205, size: 28, weight: 700, fill: P.white, anchor: "middle" }),
+      `<circle cx="${CX}" cy="${CY}" r="140" fill="${P.band}" fill-opacity="0.45" stroke="${P.deep2}" stroke-width="3" stroke-dasharray="12 9"/>`,
+      R(CX - 8, CY - 8, 16, 16, { fill: P.deep, rx: 3 }),
+      T("標的", { x: CX - 18, y: CY + 6, size: 19, weight: 700, fill: P.deep, anchor: "end" }),
+      PATH(`M${CX} ${CY} L${CX + 140} ${CY}`, { stroke: P.accent, sw: 3, dash: "8 7" }),
+      T("半徑三百公尺", { x: CX + 70, y: CY + 24, size: 18, weight: 700, fill: P.accent2, anchor: "middle" }),
+      spot(CX, CY - 85, "醫院"),
+      spot(CX + 74, CY - 42, "學校"),
+      spot(CX + 74, CY + 42, "加油站"),
+      spot(CX, CY + 85, "殯儀館"),
+      spot(CX - 74, CY + 42, "警察局"),
+      spot(CX - 74, CY - 42, "公有市場"),
+      bottomRoundRect(61, 534, 518, 53, 15, P.paper),
+      T("示意圖，不是實際位置或比例", { x: 320, y: 568, size: 22, weight: 500, fill: P.ink, anchor: "middle" }),
+
+      // 右上：法規用詞 vs 業界俗稱
+      // ⚠️ 這裡**不能**用 `crossMark()`：它畫的是正方形的叉，要蓋住「嫌惡設施」四個字
+      //    （寬 104）就得把高度也拉到 104，上緣會直接切進上面「重要環境設施」那一行——
+      //    等於把這張圖要強調的正確用詞劃掉。所以改成一組寬 120、高 40 的扁 X，
+      //    畫在字**之前**（壓在字底下），只蓋住那四個字所在的帶狀範圍。
+      R(620, 168, 520, 196, { fill: P.white, stroke: P.accent, sw: 3, rx: 16 }),
+      T("法規原文用的詞", { x: 648, y: 202, size: 22, weight: 700, fill: P.accent2 }),
+      T("重要環境設施", { x: 648, y: 258, size: 42, weight: 900, fill: P.deep }),
+      PATH("M642 302 L762 342", { stroke: P.accent2, sw: 4 }),
+      PATH("M762 302 L642 342", { stroke: P.accent2, sw: 4 }),
+      T("嫌惡設施", { x: 648, y: 332, size: 26, weight: 700, fill: P.ink }),
+      T(fit("fig-05 俗稱註", "業界俗稱，不是法律用語", 20, 330), {
+        x: 790,
+        y: 332,
+        size: 20,
+        weight: 500,
+        fill: P.deep2
+      }),
+
+      // 右下：不得記載事項第六點
+      R(620, 392, 520, 196, { fill: P.white, stroke: P.line, sw: 2, rx: 16 }),
+      T("貳、不得記載事項　六", { x: 648, y: 428, size: 22, weight: 700, fill: P.deep2 }),
+      T("不得記載房價有上漲空間", { x: 648, y: 476, size: 24, weight: 700, fill: P.ink }),
+      T("或預測房價上漲之情形。", { x: 648, y: 510, size: 24, weight: 700, fill: P.ink }),
+      T("這是法定的不得記載事項，不是道德勸說", { x: 648, y: 556, size: 20, weight: 500, fill: P.deep2 }),
+
+      T(fit("fig-05 底部 1", "內政部「不動產說明書應記載及不得記載事項」（民國 115 年 1 月 13 日台內地字第 1140267470 號令修正）", 20, 1080), {
+        x: 60,
+        y: 628,
+        size: 20,
+        weight: 500,
+        fill: P.deep2
+      }),
+      T(fit("fig-05 底部 2", "整份公告從應記載事項到不得記載事項，沒有出現「嫌惡設施」四個字", 19, 1080), {
+        x: 60,
+        y: 656,
+        size: 19,
+        weight: 500,
+        fill: P.deep2
+      })
+    ].join("")
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════
    4. 清單與產出
    要加新圖：在這個陣列加一列，跑一次 `node scripts/build-blog-images.mjs`。
@@ -1743,7 +2296,13 @@ const IMAGES = [
   { file: "1004-alley-townhouse-parking/fig-02.png", w: 1200, h: 675, svg: fig1004_02 },
   { file: "1004-alley-townhouse-parking/fig-03.png", w: 1200, h: 675, svg: fig1004_03 },
   { file: "1004-alley-townhouse-parking/fig-04.png", w: 1200, h: 675, svg: fig1004_04 },
-  { file: "1004-alley-townhouse-parking/fig-05.png", w: 1200, h: 675, svg: fig1004_05 }
+  { file: "1004-alley-townhouse-parking/fig-05.png", w: 1200, h: 675, svg: fig1004_05 },
+  { file: "1005-ptvgh-area/cover.png", w: 1200, h: 630, svg: cover1005 },
+  { file: "1005-ptvgh-area/fig-01.png", w: 1200, h: 675, svg: fig1005_01 },
+  { file: "1005-ptvgh-area/fig-02.png", w: 1200, h: 675, svg: fig1005_02 },
+  { file: "1005-ptvgh-area/fig-03.png", w: 1200, h: 675, svg: fig1005_03 },
+  { file: "1005-ptvgh-area/fig-04.png", w: 1200, h: 675, svg: fig1005_04 },
+  { file: "1005-ptvgh-area/fig-05.png", w: 1200, h: 675, svg: fig1005_05 }
 ];
 
 /** 單檔大小上限（見 docs/blog-images.md：封面是 eager 載入，太大直接拖慢手機第一屏）。 */
