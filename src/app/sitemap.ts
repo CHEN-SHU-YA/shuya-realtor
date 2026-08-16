@@ -50,7 +50,19 @@ const SCHOOL_MAP_LAST_MODIFIED = new Date("2026-08-15T00:00:00+08:00");
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: `${SITE_URL}/`, lastModified: SITE_LAST_MODIFIED, changeFrequency: "monthly", priority: 1 },
-    { url: `${SITE_URL}/card`, lastModified: SITE_LAST_MODIFIED, changeFrequency: "monthly", priority: 0.8 },
+
+    /**
+     * 🔴 **`/card`（電子名片）刻意不在這份清單裡。**
+     *
+     * 那一頁是 `robots: { index: false, follow: false }` —— 根 layout 的預設，
+     * 而且是刻意的（註解寫著「名片、預約、後台預設不索引」）。
+     * 收進 sitemap 等於一邊請 Google 來抓、一邊叫它不要收，
+     * 這種自相矛盾會拉低整份 sitemap 的可信度，而且**不會有任何錯誤或警告**
+     * （sitemap 語法完全合法、頁面也正常）。2026-08-16 實測線上確實兩者並存，已拿掉。
+     *
+     * ⚠️ 哪天決定讓名片頁被索引，是先在 `app/card/page.tsx` 覆寫 `robots` 成 index，
+     *    **然後**才把它加回這裡 —— 順序反了就是再犯一次同樣的矛盾。
+     */
 
     /**
      * 學區地圖。頁面本身住在另一個 Vercel 專案（`shuya-school-map`），

@@ -9,7 +9,8 @@
     "start": "next start",
     "check": "tsc --noEmit",
     "verify": "npm run check && npm run build",
-    "og": "node scripts/build-og-home.mjs"
+    "og": "node scripts/build-og-home.mjs",
+    "icons": "node scripts/build-icons.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
