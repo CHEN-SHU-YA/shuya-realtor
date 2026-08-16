@@ -59,7 +59,11 @@ export type BlogPostData = {
   description: string;
   category: CategorySlug;
   keywords: readonly string[];
-  /** 發布日 YYYY-MM-DD。🔴 上線後永不修改（改了 Google 當新文章）。 */
+  /**
+   * 發布日 YYYY-MM-DD。照 00 方案書第三節①「可改＋標示」：表單可編輯、
+   * 欄下常駐標示「改了 Google 會把這篇當成新文章、排名重新累積」——標示不鎖。
+   * 落盤要走 savePostDraft 的選填參數 publishedDate（明確帶才會動，避免舊呼叫端誤蓋）。
+   */
   publishedAt: IsoDate;
   /** 最後更新日 YYYY-MM-DD（顯示用；沒改過就 null，前台退回 publishedAt）。 */
   updatedAt: IsoDate | null;
@@ -351,15 +355,23 @@ export async function importPost(
  * 存草稿。🔴 樂觀鎖：`expectedUpdatedAt` 不等於資料庫現值就回 conflict、不寫入
  * （「這篇在別的視窗被改過」——01 文件點名的互蓋風險）。
  * 成功後 insert 一筆 history（整包快照），並回傳新的鎖 token。
- * `id`、`publishedAt` 兩個凍結欄位不在 update 清單裡——表單顯示但不落盤。
+ * `id` 是唯一的凍結欄位、不在 update 清單裡（方案書第八節的網址規則）。
+ * 發布日照 00 方案書第三節①「可改＋標示」：要改就帶選填的 `publishedDate`
+ * （text 格式 YYYY-MM-DD，照本表既有慣例）；不帶＝發布日不動，
+ * 既有呼叫端（不帶第四參數）行為完全不變。
  */
 export async function savePostDraft(
   data: BlogPostData,
   expectedUpdatedAt: string,
-  note = ""
+  note = "",
+  publishedDate?: IsoDate
 ): Promise<BlogWriteResult> {
   await ensureBlogSchema();
   const sql = getSql();
+
+  /** 空字串視同「不改」——date 輸入框清空不該把發布日洗掉。 */
+  const nextPublishedDate =
+    publishedDate && publishedDate.trim() !== "" ? publishedDate.trim() : null;
 
   const rows = await sql`
     update blog_posts set
@@ -368,6 +380,7 @@ export async function savePostDraft(
       description = ${data.description},
       category = ${data.category},
       keywords = ${JSON.stringify(data.keywords)}::jsonb,
+      published_date = coalesce(${nextPublishedDate}, published_date),
       updated_date = ${data.updatedAt},
       cover = ${data.cover},
       excerpt = ${data.excerpt},
@@ -387,9 +400,13 @@ export async function savePostDraft(
     return { ok: false, reason: exists.length ? "conflict" : "not-found" };
   }
 
+  /** history 快照要跟落盤內容一致：這次有改發布日，快照裡的 publishedAt 也要是新值。 */
+  const savedData: BlogPostData =
+    nextPublishedDate === null ? data : { ...data, publishedAt: nextPublishedDate };
+
   await sql`
     insert into blog_post_history (post_id, data, note)
-    values (${data.id}, ${JSON.stringify(data)}::jsonb, ${note})
+    values (${data.id}, ${JSON.stringify(savedData)}::jsonb, ${note})
   `;
   return { ok: true, updatedAt: iso(rows[0].updated_at) };
 }
@@ -490,6 +507,18 @@ export async function listPosts(): Promise<readonly BlogPostSummary[]> {
     console.error("[blog-db] 讀文章列表失敗", error);
     return [];
   }
+}
+
+/**
+ * 後台文章筆數。🔴 跟其他後台讀取相反，連線失敗**刻意 throw**、不回 0——
+ * 這支是 importIfEmptyAction 的空庫判斷專用：「庫是不是空的」必須跟
+ * 「連不連得上」走同一發查詢、同一條錯誤路徑，讀不到＝報錯，絕不＝空庫。
+ * （listPosts 失敗回 [] 的設計在這裡會把瞬斷誤判成空庫，重匯就蓋掉後台的編輯。）
+ */
+export async function countPosts(): Promise<number> {
+  await ensureBlogSchema();
+  const rows = await getSql()`select count(*)::int as n from blog_posts`;
+  return Number(rows[0].n);
 }
 
 /** 後台編輯頁讀一篇（草稿內容＋線上版本＋樂觀鎖 token）。失敗回 null。 */

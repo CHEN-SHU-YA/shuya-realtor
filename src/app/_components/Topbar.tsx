@@ -26,6 +26,7 @@ export default function Topbar({ admin = false }: { admin?: boolean }) {
           <>
             <Link href="/admin/appointments">預約管理</Link>
             <Link href="/admin/content">網站內容</Link>
+            <Link href="/admin/blog">文章管理</Link>
           </>
         ) : process.env.NODE_ENV === "development" ? (
           <Link href="/admin">後台</Link>

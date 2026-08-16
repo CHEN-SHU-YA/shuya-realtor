@@ -1,0 +1,799 @@
+/**
+ * 部落格後台編輯器樣式（INTERFACE-stage2 §8：唯一的新 CSS 檔）。
+ *
+ * 🔴 只在 /admin/blog/** 的頁面 import（目前由 editor/BlogEditor.tsx 帶進來）；
+ *    不進前台、不動 globals.css／site.css／blog.css。
+ * 🔴 類名全部 bae- 前綴（blog admin editor），加上 .bae-content 底下的
+ *    ProseMirror 選擇器——不外溢到 admin 其他頁。
+ * 色票沿用 globals.css 的 :root 代幣（--ink／--line／--surface…），
+ * 版型 class（appointment／field-grid…）照 admin 既有的用，不在這裡重做。
+ */
+
+/* ── 編輯器外殼 ── */
+.bae-editor {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  overflow: visible;
+}
+
+.bae-loading {
+  margin: 0;
+  padding: 40px 24px;
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+/* ── 工具列（固定式） ── */
+.bae-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border-bottom: 1px solid var(--line);
+  border-radius: 12px 12px 0 0;
+  background: var(--surface-soft);
+}
+
+.bae-tbtn {
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.bae-tbtn:hover:not(:disabled) {
+  border-color: var(--navy-700);
+}
+
+.bae-tbtn.on {
+  background: var(--navy-800);
+  border-color: var(--navy-800);
+  color: #fff;
+}
+
+.bae-tbtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.bae-tsep {
+  width: 1px;
+  align-self: stretch;
+  margin: 0 4px;
+  background: var(--line);
+}
+
+.bae-tfield {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.bae-tfield input {
+  width: 120px;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.bae-tfield input.bae-tfield-num {
+  width: 64px;
+}
+
+/* 插入區塊下拉 */
+.bae-menu {
+  position: relative;
+}
+
+.bae-menu-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.bae-menu-list button {
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ink);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bae-menu-list button:hover {
+  background: var(--surface-soft);
+}
+
+/* 連結編輯小面板（工具列下緣整幅） */
+.bae-linkpanel {
+  flex-basis: 100%;
+  margin-top: 4px;
+  padding: 10px 12px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+/* ── 內容區：ProseMirror 基本樣式 ── */
+.bae-content .ProseMirror {
+  min-height: 320px;
+  padding: 20px 24px 28px;
+  outline: none;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.85;
+}
+
+.bae-content .ProseMirror p {
+  margin: 0 0 14px;
+}
+
+.bae-content .ProseMirror h2 {
+  margin: 26px 0 12px;
+  font-size: 22px;
+  line-height: 1.5;
+}
+
+.bae-content .ProseMirror ul,
+.bae-content .ProseMirror ol {
+  margin: 0 0 14px;
+  padding-left: 28px;
+}
+
+.bae-content .ProseMirror li {
+  margin: 0 0 6px;
+}
+
+.bae-content .ProseMirror li p {
+  margin: 0;
+}
+
+.bae-content .ProseMirror hr {
+  margin: 24px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.bae-content .ProseMirror a {
+  color: var(--teal-600);
+  text-decoration: underline;
+}
+
+/* 選到 atom 區塊（圖卡、便利貼、占位卡…）時的外框 */
+.bae-content .ProseMirror-selectednode {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+/* gapcursor（atom 區塊前後的插入游標）——ProseMirror 標準樣式 */
+.bae-content .ProseMirror-gapcursor {
+  display: none;
+  position: absolute;
+  pointer-events: none;
+}
+
+.bae-content .ProseMirror-gapcursor:after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: -2px;
+  width: 20px;
+  border-top: 1px solid var(--ink);
+  animation: bae-blink 1.1s steps(2, start) infinite;
+}
+
+@keyframes bae-blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+.bae-content .ProseMirror-focused .ProseMirror-gapcursor {
+  display: block;
+}
+
+/* ── 區塊卡共用：標示列 ── */
+.bae-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--surface-soft);
+  border-bottom: 1px dashed var(--line);
+  border-radius: 10px 10px 0 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.bae-bar a {
+  color: var(--teal-600);
+}
+
+.bae-bar-tag {
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.bae-bar-sep {
+  color: var(--line);
+}
+
+.bae-linkbtn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--teal-600);
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.bae-linkbtn.bae-danger {
+  margin-left: auto;
+  color: var(--red-600);
+}
+
+.bae-muted {
+  color: var(--ink-soft);
+}
+
+.bae-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.bae-badge-warn {
+  border: 1px solid var(--red-600);
+  background: #fdecea;
+  color: var(--red-600);
+  cursor: pointer;
+}
+
+.bae-badge-info {
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+  color: var(--ink-soft);
+}
+
+/* 多條出處時，每條後面那個看得見的「（開新視窗核對）」小連結 */
+.bae-checklink {
+  margin-left: 2px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* ── lawQuote：常駐標示列＋blockquote 樣式的可編輯內容 ── */
+.bae-lawquote {
+  margin: 0 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.bae-lawquote-content {
+  margin: 12px 14px 12px 16px;
+  padding: 2px 0 2px 14px;
+  border-left: 4px solid var(--line);
+  color: var(--ink-soft);
+}
+
+.bae-lawquote-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* 差異小窗 */
+.bae-diff {
+  margin: 8px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 14px;
+}
+
+.bae-diff-item + .bae-diff-item {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+
+.bae-diff-title {
+  margin: 0 0 8px;
+  color: var(--ink);
+}
+
+.bae-diff-p {
+  margin: 4px 0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #fdecea;
+}
+
+.bae-diff-ref {
+  margin: 4px 0 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--surface-soft);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+/* ── sourceLine ── */
+.bae-srcline {
+  margin: 0 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.bae-srcline .bae-bar {
+  border-bottom: 0;
+  border-radius: 10px;
+}
+
+/* ── specTable（表格預覽＋編輯面板；面板的重複列沿用 .bae-srcrow） ── */
+.bae-spec {
+  margin: 0 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.bae-spec-body {
+  padding: 12px 14px;
+}
+
+.bae-spec-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-weight: 700;
+}
+
+.bae-spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.bae-spec-table th {
+  width: 1%;
+  padding: 6px 12px 6px 0;
+  color: var(--ink-soft);
+  font-weight: 600;
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.bae-spec-table td {
+  padding: 6px 0;
+}
+
+.bae-spec-table tr + tr th,
+.bae-spec-table tr + tr td {
+  border-top: 1px solid var(--line);
+}
+
+.bae-spec-tag {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* 面板裡「原樣保留」的那一格（帶連結 mark 的 value／tag，實況為零） */
+.bae-spec-lockedvalue {
+  margin: 0;
+  padding: 6px 8px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* ── editorNote：黃便利貼 ── */
+.bae-note {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border: 1px solid #e8d48b;
+  border-radius: 10px;
+  background: #fff8dc;
+}
+
+.bae-note-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  color: #7a6512;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bae-note-text {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px dashed #d8c578;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.7;
+  resize: vertical;
+}
+
+/* ── tocList／signature：灰色占位卡 ── */
+.bae-placeholder {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+.bae-placeholder-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.bae-placeholder-text {
+  margin: 6px 0 0;
+}
+
+/* ── image 圖卡 ── */
+.bae-imgcard {
+  margin: 0 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.bae-imgpreview {
+  padding: 12px;
+}
+
+.bae-imgpreview img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.bae-imgpreview p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.bae-imgcard .bae-field {
+  padding: 0 12px 10px;
+}
+
+/* ── 面板與欄位（出處面板、圖卡欄位共用） ── */
+.bae-panel {
+  padding: 10px 12px;
+  border-top: 1px dashed var(--line);
+  background: var(--surface-soft);
+}
+
+.bae-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.bae-field:first-child {
+  margin-top: 0;
+}
+
+.bae-field > label {
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.bae-field input,
+.bae-field textarea,
+.bae-field select {
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+}
+
+.bae-field textarea {
+  resize: vertical;
+  line-height: 1.7;
+}
+
+.bae-field-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .bae-field-pair {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bae-hint {
+  margin: 2px 0 0;
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.bae-hint a {
+  color: var(--teal-600);
+}
+
+.bae-warn-text {
+  color: var(--red-600);
+}
+
+.bae-srcrow {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.bae-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.bae-panel-actions {
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+
+.bae-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--navy-800);
+  border-radius: 8px;
+  background: var(--navy-800);
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.bae-btn-secondary {
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.bae-btn-secondary:hover {
+  border-color: var(--navy-700);
+}
+
+/* ═══════════════════════════════════════════════
+   以下是路一（列表／編輯頁表單／版本頁）的區段，前綴 bab-，
+   與上面路二的 bae- 各管各的，改別人的區段前先跟主控端說。
+   ═══════════════════════════════════════════════ */
+
+/* ── 文章列表的一列 ── */
+.bab-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  padding: 13px 2px;
+  border-top: 1px solid var(--line);
+}
+
+.bab-row:first-of-type {
+  border-top: 0;
+}
+
+.bab-row-title {
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.bab-row-title:hover {
+  color: var(--navy-700);
+}
+
+.bab-row-meta {
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.bab-row-links {
+  margin-left: auto;
+  display: flex;
+  gap: 12px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.bab-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.bab-badge-published {
+  border-color: var(--teal-600);
+  background: #eef7f1;
+  color: var(--teal-600);
+}
+
+.bab-badge-dirty {
+  border-color: #e0b64f;
+  background: #fff7e0;
+  color: #8a5a00;
+}
+
+.bab-badge-warn {
+  border-color: var(--red-600);
+  background: #fdecea;
+  color: var(--red-600);
+}
+
+/* ── 表單即時提示（提示不擋） ── */
+.bab-flag {
+  color: #8a5a00;
+}
+
+.bab-ok {
+  color: var(--teal-600);
+}
+
+/* 封面縮圖 */
+.bab-cover-thumb {
+  display: block;
+  max-width: 320px;
+  width: 100%;
+  height: auto;
+  margin-top: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+/* ── 編輯頁動作列（sticky 置底） ── */
+.bab-actions {
+  position: sticky;
+  bottom: 12px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.bab-result {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+.bab-result.err {
+  color: var(--red-600);
+}
+
+.bab-result.okk {
+  color: var(--teal-600);
+}
+
+/* ── 發布檢查清單彈出層 ── */
+.bab-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(5, 35, 26, 0.45);
+}
+
+.bab-modal {
+  width: 100%;
+  max-width: 640px;
+  max-height: 82vh;
+  overflow: auto;
+  padding: 20px 22px;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.bab-modal h3 {
+  margin: 0 0 4px;
+  color: var(--navy-900);
+}
+
+.bab-modal-desc {
+  margin: 0 0 10px;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.bab-check-item {
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.bab-check-item p {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.bab-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}

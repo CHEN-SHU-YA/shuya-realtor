@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Topbar from "@/app/_components/Topbar";
 import { listAppointments } from "@/lib/appointment-store";
+import { listPosts } from "@/lib/blog-db";
 import { hasDatabase } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +22,15 @@ export default async function AdminHome() {
   } catch {
     failed = true;
   }
+
+  /** 文章統計（listPosts 失敗回 []，這張卡不會弄炸後台首頁）。 */
+  const blogPosts = await listPosts();
+  const blogDirty = blogPosts.filter((post) => post.hasUnpublishedChanges).length;
+  const blogStat = !hasDatabase
+    ? "—"
+    : blogPosts.length === 0
+      ? "還沒匯入文章（點進去可一鍵匯入五篇）"
+      : `${blogPosts.length} 篇文章${blogDirty ? `／${blogDirty} 篇改了還沒發布` : ""}`;
 
   return (
     <div className="admin-page">
@@ -63,6 +73,15 @@ export default async function AdminHome() {
               存檔後前台重新整理就會變，不用重新部署。
             </p>
             <p className="admin-entry-stat">姓名、證號、電話不在這裡改</p>
+          </Link>
+
+          <Link className="appointment admin-entry" href="/admin/blog">
+            <h2 className="content-h">📝 文章管理</h2>
+            <p className="content-desc">
+              部落格文章的編輯、版本與發布。存檔是存草稿，按「發布」才會更新線上版本；
+              每次存檔都留完整快照，隨時可以還原。
+            </p>
+            <p className="admin-entry-stat">{blogStat}</p>
           </Link>
         </div>
       </div>
