@@ -19,3 +19,7 @@ npm-debug.log*
 # 編輯過程留下的暫存檔
 *.bak
 *.orig
+
+# 部落格搬遷的中間產物（五篇舊文轉出來的區塊 JSON 與 diff 報告）。
+# repo 是公開的，文章內容最終要離開 repo——中間產物不可進版控。
+.blog-migration/
