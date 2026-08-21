@@ -161,7 +161,7 @@ LINE 綠 `#06C755`、表單錯誤紅、後台客戶溫度標籤刻意保留原�
 
 ## 還沒做的事
 
-- [x] 營業員證號 (109)368962（在 `src/lib/profile.ts` 的 `licenseNo`）
+- [x] 營業員證號 (109)登字第368962號（在 `src/lib/profile.ts` 的 `licenseNo`）
 - [ ] 確認營業時間（目前 `booking.ts` 是週一至五 10:00–18:00，房仲週末通常要開）
 - [ ] 接資料庫，讓線上預約真的能收單
 - [ ] Google Search Console 提交 sitemap

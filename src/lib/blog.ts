@@ -356,7 +356,7 @@ export function categoryDescription(category: CategoryMeta): string {
 }
 
 /**
- * 署名列（`.bl-byline`）：`陳書亞 (109)368962 · 書亞｜屏東房產　|　2026-08-14`。
+ * 署名列（`.bl-byline`）：`陳書亞 (109)登字第368962號 · 書亞｜屏東房產　|　2026-08-14`。
  * 🔴 品牌與日期之間是「全形空格 + **半形**直線 + 全形空格」，不是全形直線「｜」。
  */
 export function postByline(post: Post): string {
@@ -483,7 +483,7 @@ export function toTaipeiIso(date: string): string {
  * 陳書亞本人（`Person`）。
  * 內嵌在 `BlogPosting.author` 裡，用固定 `@id` 與 `RealEstateAgent.employee` 對接。
  *
- * 🔴 `jobTitle` 是「不動產營業員」；`identifier` 是半形括號的 `(109)368962`，
+ * 🔴 `jobTitle` 是「不動產營業員」；`identifier` 是半形括號的 `(109)登字第368962號`，
  *    兩者都直接取自 `PROFILE`，不重打。
  */
 export function buildPersonLd(): JsonLdNode {
