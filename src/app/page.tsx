@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SiteHome from "@/app/_components/SiteHome";
 import { PROFILE } from "@/lib/profile";
+import { AGENCY } from "@/lib/agency";
 import { SITE_URL } from "@/lib/site";
 import { getContent } from "@/lib/content";
 import { plain } from "@/lib/rich";
@@ -92,22 +93,48 @@ const JSON_LD = {
     {
       "@type": "RealEstateAgent",
       "@id": `${SITE_URL}/#agency`,
-      name: "書亞｜屏東房產（有巢氏房屋 屏東崇大華盛加盟店）",
+      /**
+       * 🔴 `name` 一定是招牌名（`AGENCY.name`），品牌名只准放 `alternateName`。
+       *
+       * 這個節點與部落格每一頁 `buildAgentLd()` 印的是**同一個 `@id`**，Google 會把
+       * 兩邊合併成同一個實體。以前這裡的 `name` 放品牌複合名「書亞｜屏東房產（…）」，
+       * 部落格放招牌名 —— 同一實體兩套 name，Google 擇一時可能把品牌名當成
+       * 法定經紀業名稱。所以身分欄位（name／legalName／電話／地址／座標／營業時間）
+       * 一律取自 `AGENCY` 常數，跟 `buildAgentLd()` 同源，不在這裡重打任何一個字。
+       */
+      name: AGENCY.name,
+      legalName: AGENCY.legalName,
+      alternateName: "書亞｜屏東房產",
       slogan: "深耕屏東，為你精準佈局每一份資產",
       description: "屏東房仲推薦－陳書亞，連續兩年百萬戰將，專營屏東市的全方位房產顧問服務，提供不動產買賣仲介、資產配置規劃、節稅諮詢與售前簡易裝潢，服務範圍涵蓋屏東縣與高雄。",
       image: `${SITE_URL}/img/shuya-profile.jpg`,
       url: `${SITE_URL}/`,
-      telephone: "+886-925-069-812",
+      telephone: AGENCY.telInternational,
       email: PROFILE.email,
       priceRange: "$$",
       employee: { "@id": `${SITE_URL}/#shuya` },
       address: {
         "@type": "PostalAddress",
-        addressCountry: "TW",
-        addressRegion: "屏東縣",
-        addressLocality: "屏東市",
-        streetAddress: "華盛街 5-5 號"
+        addressCountry: AGENCY.address.addressCountry,
+        addressRegion: AGENCY.address.addressRegion,
+        addressLocality: AGENCY.address.addressLocality,
+        postalCode: AGENCY.address.postalCode,
+        streetAddress: AGENCY.address.streetAddress
       },
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: AGENCY.geo.latitude,
+        longitude: AGENCY.geo.longitude
+      },
+      openingHoursSpecification: [
+        {
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: [...AGENCY.openingHours.days],
+          opens: AGENCY.openingHours.opens,
+          closes: AGENCY.openingHours.closes
+        }
+      ],
+      sameAs: [PROFILE.social.line],
       areaServed: [
         { "@type": "City", name: "屏東市" },
         { "@type": "AdministrativeArea", name: "屏東縣" },
